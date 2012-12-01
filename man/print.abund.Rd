@@ -41,10 +41,13 @@ Trent McDonald, WEST Inc.,  \email{tmcdonald@west-inc.com}
 }
 
 \examples{
+\dontrun{
+    set.seed(444443)
     x <- rgamma(1000, 2,2) 
     fit <- F.dfunc.estim(x, likelihood="Gamma")
     fit <- F.abund.estim(fit, tot.trans.len=1000 )
-    print(fit)  
+    print(fit)
+}  
 }
 \keyword{ models }
 

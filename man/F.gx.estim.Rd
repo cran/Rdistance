@@ -91,7 +91,9 @@ A list comprised of the following components:
 }
 
 \examples{
+\dontrun{
     # Non-double observer example
+    set.seed(555574)
     x <- rnorm(1000) * 100
     x <- x[ 0 < x & x < 100 ]
     un.dfunc <- F.dfunc.estim( x, likelihood="uniform", w.hi = 100)    
@@ -104,6 +106,7 @@ A list comprised of the following components:
     F.gx.estim(un.dfunc, x.scl=0, g.x.scl=dbl.obs, observer="both" )  # a warning about x.scl < $w.lo is issued.
     F.gx.estim(un.dfunc, x.scl="max", g.x.scl=dbl.obs, observer="both" )
     F.gx.estim(un.dfunc, x.scl="max", g.x.scl=dbl.obs, observer=1 )
+}
 }
 
 \keyword{ model }

@@ -40,12 +40,15 @@ Trent McDonald, WEST Inc.,  \email{tmcdonald@west-inc.com}
 }
 
 \examples{
+\dontrun{
+set.seed(5553)
 x <- rnorm(1000) * 100
 x <- x[ 0 < x & x < 100 ]
 fit <- F.dfunc.estim(x, w.lo=0, w.hi=100)
 coef(fit)  
 fit <- F.dfunc.estim(x, w.lo=0, w.hi=100, expansions=1)
 coef(fit)
+}
 }
 
 \keyword{ model }

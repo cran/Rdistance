@@ -76,6 +76,8 @@ Trent McDonald, WEST Inc.,  \email{tmcdonald@west-inc.com}
 }
 
 \examples{
+\dontrun{
+set.seed(238642)
 x <- seq( 0, 100, length=100)
 
 #   Plots showing effects of changes in shape
@@ -94,7 +96,7 @@ b <- (1/gamma(r)) * (((r - 1)/exp(1))^(r - 1))
 x <- rgamma(1000, shape=r, scale=b*lam)
 dfunc <- F.dfunc.estim( x, likelihood="Gamma" )
 plot(dfunc)
-
+}
 }
 
 \keyword{ models }

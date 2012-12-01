@@ -1,5 +1,5 @@
 F.abund.estim <- function( dfunc, avg.group.size=1, group.sizes, area=1, tot.trans.len=1, n=length(dfunc$dist), 
-    ci=0.95, R=500, plot.bs=FALSE, transects=NULL ){
+    ci=0.95, R=500, plot.bs=FALSE, transects=NULL){
 #
 #   Estimate abundance using an estimated distance function
 #
@@ -47,6 +47,7 @@ if( missing(group.sizes) ){
     n.tot <- avg.group.size * n
 } else if( length(group.sizes) == n ){
     n.tot <- sum(group.sizes)
+    avg.group.size <- mean(group.sizes)
 } else {
     stop("Either avg.group.size or group.sizes vector must be specified")
 }
@@ -59,7 +60,11 @@ n.hat <- n.tot * area / (2*esw*tot.trans.len)
 
 ans <- dfunc
 ans$n.hat <- n.hat
-
+ans$n <- n
+ans$area <- area
+ans$esw <- esw
+ans$tran.len <- tot.trans.len
+ans$avg.group.size <- avg.group.size
 
 #   Run bootstrap confidence interval, if called for
 if( !is.null(ci) ){
@@ -68,15 +73,21 @@ if( !is.null(ci) ){
     d.orig <- d.orig[ ind ]
     g.x.scl.orig <- dfunc$call.g.x.scl
 
+    #print(transects)
     if( is.null( transects )){
         transects <- 1:length(d.orig)
     } else {
         transects <- transects[ind]  # incase there are NA's or distances outside lo and hi
     }
+#    if( is.null(count.transects)){
+#        count.transects <- transects
+#    }
+    #print(transects)
     unique.transects <- sort(unique( transects))
     data.list<-tapply(d.orig, transects, function(x){x})  # splits data, list item contains data from one transect 
     n.bs <- rep( NA, R) 
-    tmp.const <- n.tot * area / (2*tot.trans.len)
+    
+    tmp.const <- n.tot* area / (2*tot.trans.len)
     
     #   Set up a progress bar, but, if utils package is not installed, don't require it.
     if( "utils" %in% installed.packages()[,"Package"] ){
@@ -88,10 +99,11 @@ if( !is.null(ci) ){
     }
     
     cat("Computing bootstrap confidence interval on N...\n")
+    #print(data.list)
     for( i in 1:R ){
-        bs <- sample( unique.transects, replace=TRUE )
+        bs.trans <- sample( unique.transects, replace=TRUE )
         
-        d.bs <- unlist(tapply(bs, 1:length(bs), FUN=function(x, df){df[[as.character(x)]]}, data.list))  # samples whole transects
+        d.bs <- unlist(tapply(bs.trans, 1:length(bs.trans), FUN=function(x, df){df[[as.character(x)]]}, data.list))  # samples whole transects
         
         if( is.data.frame( g.x.scl.orig ) ){
             #   double observer data came with this fit.  Bootstrap resample it too.
@@ -99,6 +111,9 @@ if( !is.null(ci) ){
         } else {
             g.x.scl.bs <- g.x.scl.orig
         }
+        
+        #print(d.bs)
+        #readline()
         
         dfunc.bs <- F.dfunc.estim(d.bs, 
                         likelihood=dfunc$like.form, 
@@ -114,6 +129,8 @@ if( !is.null(ci) ){
         if( dfunc.bs$convergence == 0 ){  # note this also excludes solutions with parameters at their boundaries
             esw <- ESW(dfunc.bs)
             if( esw <= dfunc$w.hi ){
+                
+                # If you want to, resample the count transects to get variation in counts
                 n.bs[i] <- tmp.const / esw
             }
             
@@ -126,13 +143,23 @@ if( !is.null(ci) ){
     if( show.progress ) close( pb )
     if( plot.bs ) f.plot.bs( dfunc, x.scl.plot, y.scl.plot, col="red", lwd=3 )
     
+    #print(n.bs)
+    
     #   Compute bias corrected bootstrap estimate and CI. (Manly, p. 52)
     p <- mean( n.bs > n.hat, na.rm=TRUE)
+    #print(p)
     z.0 <- qnorm( 1 - p )
+    #print(z.0)
     z.alpha <- qnorm( 1 - ((1 - ci)/2)) 
+    #print(z.alpha)
     p.L <- pnorm( 2*z.0 - z.alpha )
+    #print(p.L)
+    
     p.H <- pnorm( 2*z.0 + z.alpha )
+    #print(p.H)
     ans$ci <- quantile( n.bs[ !is.na(n.bs) ], p=c(p.L, p.H) )
+    #print(ans$ci)
+    
     ans$B <- n.bs
     if( any(is.na(n.bs)) ) cat(paste( sum(is.na(n.bs)), "of", R, "iterations did not converge.\n"))
 } else {

@@ -47,6 +47,7 @@ See \code{\link{uniform.like}} for definitions of all the likelihoods; \code{\li
 }
 
 \examples{
+set.seed(37372)
 x <- rnorm(1000) * 100
 x <- x[ 0 < x & x < 100 ]
 F.nLL( c(50,20), x, "uniform", w.hi = 100)

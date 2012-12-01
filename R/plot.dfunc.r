@@ -103,7 +103,7 @@ if( x$convergence != 0 ){
     }
     text( mean(x.seq), mean(y.lims), mess, cex=3, adj=.5, col="red")
     text( mean(x.seq), mean(y.lims), paste("\n\n\n", x$fit$message, sep=""), cex=1, adj=.5, col="black")
-} else if( area > x$w.hi ){
+} else if( is.na(area) | (area > x$w.hi) ){
     #   invalid scaling, g0 is wrong
     mess <- "Scaling failure"
     text( mean(x.seq), mean(y.lims), mess, cex=3, adj=.5, col="red")

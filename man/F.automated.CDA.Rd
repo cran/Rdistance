@@ -106,6 +106,8 @@ F.automated.CDA(dist, group.size = 1, area = 1, total.trans.len = 1, w.lo = 0, w
 
 \examples{
 
+\dontrun{
+set.seed(234252)
 x <- rnorm(1000) * 100
 x <- x[ 0 < x & x < 100 ]
 
@@ -113,7 +115,7 @@ x <- x[ 0 < x & x < 100 ]
 N <- F.automated.CDA( x, area=1000*10000, total.trans.len=1000, w.hi = 100, 
     likelihood=c("halfnorm", "uniform", "Gamma"), series=c("cosine", "simple"), 
     expansions=c(0,1,2))
-
+}
 }
 
 \keyword{ model }

@@ -129,6 +129,8 @@ Trent McDonald, WEST Inc.,  \email{tmcdonald@west-inc.com}
 
 \examples{
 
+\dontrun{
+
 x <- seq( 0, 100, length=100)
 
 #   ------ UNIFORM     
@@ -183,6 +185,7 @@ plot(x, hazrate.like(c(50,25,3), x, expansions=1, series="hermite"))
 
 #   ------ Estimate distance functions and plot
 #   Generate half-norm data
+set.seed(8383838)
 x <- rnorm(1000) * 100
 x <- x[ 0 < x & x < 100 ]
 un.dfunc <- F.dfunc.estim( x, likelihood="uniform", w.hi = 100)
@@ -195,7 +198,7 @@ plot(un.dfunc)
 plot(hn.dfunc)
 plot(ne.dfunc)
 plot(hz.dfunc)
-
+}
 }
 
 \keyword{ models }

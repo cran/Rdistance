@@ -33,15 +33,16 @@ The value of x that maximized g(x) in \code{fit}.
 }
 
 \examples{
-
+\dontrun{
 #   Fake data
+set.seed(22223333)
 x <- rgamma(100, 10, 1)
 
 fit <- F.dfunc.estim( x, likelihood="Gamma", x.scl="max" )
 
 F.maximize.g( fit )  # should be near 10.
 fit$x.scl            # same thing
-
+}
 }
 \keyword{ model }
 

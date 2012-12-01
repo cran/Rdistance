@@ -59,6 +59,7 @@ A single scalar, the probability of detection estimate.
 \examples{
 
 #   Fake observers
+set.seed(538392)
 obsrv <- data.frame( obsby.1=rbinom(100,1,.75), obsby.2=rbinom(100,1,.5) )
 
 F.double.obs.prob( obsrv, observer=1 )

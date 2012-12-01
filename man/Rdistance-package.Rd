@@ -25,7 +25,7 @@ groups of some species.  Amoung the collected data,
 off-transect distances are recorded or computed from other information 
 (such as altitude and sighting angle).  Off-transect distances are 
 the perpendicular distances from the transect to the location of the initial 
-sighting cue.  
+sighting cue.
 The physical locations of sighted targets are often recorded or computed. When groups are 
 the target, the number of individuals in the group is recorded. 
 

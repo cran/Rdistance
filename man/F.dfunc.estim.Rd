@@ -128,8 +128,9 @@ Likelihoods listed in \code{\link{uniform.like}};
 
 \examples{
 
+\dontrun{
 #   ------ Fit distance functions to half-normal data
-
+set.seed(90382)
 x <- rnorm(1000) * 20
 x <- x[ 0 < x & x < 100 ]
 
@@ -174,7 +175,7 @@ plot(tri.dfunc)
 
 #   For triangular case, true effective strip width = tri.dfunc$g.x.scl*tri.dfunc$param / 2.  
 #   ESW(tri.dfunc) may differ slightly due to numerical integration error.
-
+}
 }
 
 \keyword{ model }

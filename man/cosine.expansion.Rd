@@ -64,6 +64,7 @@ of user defined likelihoods in \code{\link{F.dfunc.estim}}.
 }
 
 \examples{
+set.seed(33328)
 x <- rnorm(1000) * 100
 x <- x[ 0 < x & x < 100 ]
 cos.expn <- cosine.expansion( x, 5 )

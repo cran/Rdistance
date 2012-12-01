@@ -51,8 +51,11 @@ Trent McDonald, WEST Inc.,  \email{tmcdonald@west-inc.com}
 }
 
 \examples{
+\dontrun{
+    set.seed(12345)
     x <- rgamma(1000, 2,2) 
     fit <- F.dfunc.estim(x, likelihood="Gamma")
-    print(fit)  
+    print(fit)
+}
 }
 \keyword{ models }

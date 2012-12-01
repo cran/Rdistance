@@ -74,12 +74,15 @@ Trent McDonald, WEST Inc.,  \email{tmcdonald@west-inc.com}
 \code{\link{coef}}, \code{\link{F.dfunc.estim}}
 }
 \examples{
+\dontrun{
+set.seed(32342)
 x <- rnorm(1000) * 100
 x <- x[ 0 < x & x < 100 ]
-#fit <- F.dfunc.estim(x, w.lo=0, w.hi=100)
-#AIC(fit)  # AICc
-#AIC(fit, k=2, n=Inf)  # AIC
-#AIC(fit, k=log(length(fit$dist)), n=Inf)  # BIC
+fit <- F.dfunc.estim(x, w.lo=0, w.hi=100)
+AIC(fit)  # AICc
+AIC(fit, k=2, n=Inf)  # AIC
+AIC(fit, k=log(length(fit$dist)), n=Inf)  # BIC
+}
 }
 
 \keyword{ model }

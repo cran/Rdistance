@@ -61,11 +61,15 @@ F.abund.estim(dfunc, avg.group.size = 1, group.sizes, area = 1,
     
   \item{plot.bs}{A logical scalar indicating whether to plot individual bootstrap iterations}
   
-  \item{transects}{A vector containing the transect ID's of all sighted 
-    targets.  Used when \code{ci} is not NULL.  If \code{transects} is not NULL, transects are resampled during 
-    bootstrap iterations.  If \code{transects} is NULL, individual observations are resampled during bootstrap iterations.  
+  \item{transects}{A vector containing the transect ID's of the targets sighted.  This vector is used during bootstrapping to resample transects 
+    in order to estimate variance in estimated size. Length must be either 0 (NULL) or \code{length(dfunc$dist)}.
+    This is only ssed when \code{ci} is not NULL.  If \code{sighting.transects} is not NULL, transects are resampled and new 
+    distance functions are fitted during bootstrap iterations.  If \code{sighting.transects} is NULL, individual observations are resampled during bootstrap iterations.  
     For the latter case (NULL), sightings must be independent and the fundamental unit of replication. 
-  }   
+    }   
+
+
+
 }
 
 \details{
@@ -97,6 +101,12 @@ all the components of a "dfunc" object (see \code{F.dfunc.estim}), plus,
   \code{n.hat} can be plotted with \code{hist(x$B)}, where \code{x} is an 'abundance estimate' object. The 
   confidence interval in \code{ci} can be reproduced with \code{quantile(x$B[!is.na(x$B)], p=names(x$ci) )}.   }
   \item{alpha}{The (scalar) confidence level of the confidence interval for \code{n.hat}.}  
+  \item{n}{The number of targets used in the estimate of abundance.  Usually this is \code{length(dist)}, but 
+    when supplied as an argument, it can be different.}
+  \item{area}{The study area size used in the estimate of abundance.}
+  \item{tran.len}{The total length of transects used in the estimate of abundance.}
+  \item{esw}{Effective strip width used in the estimate of abundance.  This can be computed with \code{ESW(dfunc)}.}
+  \item{avg.group.size}{The average group size used in the estimate.}  
 }
 
 \author{
@@ -113,8 +123,9 @@ London: Chapman and Hall.
 }
 
 \examples{
-
+\dontrun{
 #   Fake offtransect distances (x), transect id's (tran.id), and group sizes (grp.size)
+set.seed(234092)
 x <- rnorm(1000) * 100
 tran.id <- rep(1:100, each=10)
 grp.size <- rpois(1000, 2.5)
@@ -136,9 +147,9 @@ F.abund.estim( hn.dfunc, group.sizes = grp.size, tot.trans.len=10000, area=1000*
 #   Or,
 F.abund.estim( hn.dfunc, avg.group.size=2.5, tot.trans.len=10000, area=1000*10000, ci=NULL)
 
-#   Bootstrap resample the transects to compute CI for N (do more than R=100 iterations)
+#   Bootstrap resample the transects to compute CI for N (A person should do more than R=100 iterations)
 F.abund.estim( hn.dfunc, group.sizes=grp.size, tot.trans.len=10000, area=1000*10000, ci=.95, transects=tran.id, R=100, plot.bs=TRUE)
-
+}
 }
 \keyword{ model }
 
