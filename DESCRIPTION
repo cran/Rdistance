@@ -1,12 +1,13 @@
 Package: Rdistance
 Type: Package
 Title: Distance Sampling Analyses
-Version: 1.2.1
-Date: 2015-04-01
+Version: 1.2.2
+Date: 2015-04-22
 Authors@R: c(
   person("Trent", "McDonald", email="tmcdonald@west-inc.com", role=c("cre","aut")), 
   person("Ryan", "Nielson", email="rnielson@west-inc.com", role=c("aut")), 
   person("Jason", "Carlisle", email="jason.d.carlisle@gmail.com", role=c("aut")), 
+  person("Ben", "Augustine", email="ben.augustine@uky.edu", role=c("ctb")),
   person("James", "Griswald", email="", role=c("ctb")),
   person("Joel", "Reynolds", email="", role=c("ctb")), 
   person("Pham", "Quang", email="", role=c("ctb")), 
@@ -19,10 +20,13 @@ Description: Analysis of distance sampling data collected on line transect surve
 License: GNU General Public License
 URL: https://github.com/tmcd82070/Rdistance/wiki
 BugReports: https://github.com/tmcd82070/Rdistance/issues
-Packaged: 2015-04-01 20:10:06 UTC; tmcdonald
+Suggests: knitr, utils
+VignetteBuilder: knitr
+Packaged: 2015-04-22 20:52:25 UTC; tmcdonald
 Author: Trent McDonald [cre, aut],
   Ryan Nielson [aut],
   Jason Carlisle [aut],
+  Ben Augustine [ctb],
   James Griswald [ctb],
   Joel Reynolds [ctb],
   Pham Quang [ctb],
@@ -33,4 +37,4 @@ Author: Trent McDonald [cre, aut],
 Maintainer: Trent McDonald <tmcdonald@west-inc.com>
 NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2015-04-01 23:51:03
+Date/Publication: 2015-04-22 23:09:33

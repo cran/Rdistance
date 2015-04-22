@@ -1,16 +1,15 @@
-F.abund.estim <- function(dfunc, distdata, covdata,
+F.abund.estim <- function(dfunc, detection.data, transect.data,
                           area=1, ci=0.95, R=500,
                           bs.method="transects", plot.bs=FALSE){
+  
   # the alternative bs.method would be observations (aka detections), but not programmed yet
    
   
-    
-  # Stop and print error if distdata or covdata contain NAs
-  if(anyNA(distdata)==TRUE)
+  # Stop and print error if detection.data or transect.data contain NAs
+  if(any(is.na(detection.data)))
     stop("Please remove detections for which dist is NA.")
-  if(anyNA(covdata)==TRUE)
-    stop("covdata cannot contain NAs.")
-  
+  if(any(is.na(transect.data)))
+    stop("transect.data cannot contain NAs.")
   
   
   ########Plotting################
@@ -32,17 +31,17 @@ F.abund.estim <- function(dfunc, distdata, covdata,
     like <- match.fun(paste(dfunc$like.form, ".like", sep = ""))
   }
   
-  #Apply truncation specified in dfunc object (including dists equal to w.lo and w.hi)
-  (distdata <- distdata[distdata$dists >= dfunc$w.lo & distdata$dists <= dfunc$w.hi, ])
+  #Apply truncation specified in dfunc object (including dist equal to w.lo and w.hi)
+  (detection.data <- detection.data[detection.data$dist >= dfunc$w.lo & detection.data$dist <= dfunc$w.hi, ])
 
   # sample size (number of detections, NOT individuals)
-  (n <- nrow(distdata))
+  (n <- nrow(detection.data))
   
   # group sizes
-  (avg.group.size <- mean(distdata$groupsize))
+  (avg.group.size <- mean(detection.data$groupsize))
 
   # total transect length and ESW
-  (tot.trans.len <- sum(covdata$length))
+  (tot.trans.len <- sum(transect.data$length))
   (esw <- ESW(dfunc))  #get effective strip width
 
   # estimate abundance
@@ -79,23 +78,23 @@ F.abund.estim <- function(dfunc, distdata, covdata,
       cat("Computing bootstrap confidence interval on N...\n")
       for(i in 1:R){
         # sample rows, with replacement, from site covariates
-        new.covdata <- covdata[sample(nrow(covdata), nrow(covdata), replace=TRUE), ]
+        new.transect.data <- transect.data[sample(nrow(transect.data), nrow(transect.data), replace=TRUE), ]
         
-        new.trans <- as.character(new.covdata$siteID)  # which transects were sampled?
+        new.trans <- as.character(new.transect.data$siteID)  # which transects were sampled?
         trans.freq <- data.frame(table(new.trans))  # how many times was each represented in the new sample?
         
         # subset distance data from these transects
-        new.trans <- unique(droplevels(new.covdata$siteID))
-        new.distdata <- distdata[distdata$siteID %in% new.trans, ]  # this is incomplete, since some transects were represented > once
+        new.trans <- unique(droplevels(new.transect.data$siteID))
+        new.detection.data <- detection.data[detection.data$siteID %in% new.trans, ]  # this is incomplete, since some transects were represented > once
         
         # replicate according to freqency in new sample
         # merge to add Freq column to indicate how many times to repeat each row
-        red <- merge(new.distdata, trans.freq, by.x="siteID", by.y="new.trans")
+        red <- merge(new.detection.data, trans.freq, by.x="siteID", by.y="new.trans")
         # expand this reduced set my replicating rows
-        new.distdata <- red[rep(seq.int(1, nrow(red)), red$Freq), -ncol(red)]
+        new.detection.data <- red[rep(seq.int(1, nrow(red)), red$Freq), -ncol(red)]
         
         # Extract distances
-        new.x <- new.distdata$dists
+        new.x <- new.detection.data$dist
         
         #update g(0) or g(x) estimate.
         if (is.data.frame(g.x.scl.orig)) {
@@ -122,21 +121,18 @@ F.abund.estim <- function(dfunc, distdata, covdata,
             
             ###Calculate observed metrics####
             # sample size
-            n.bs <- nrow(new.distdata)
+            n.bs <- nrow(new.detection.data)
             
             # group sizes
-            avg.group.size.bs <- mean(new.distdata$groupsize)
+            avg.group.size.bs <- mean(new.detection.data$groupsize)
             
             
             #####Store observed metrics
             #esw <- ESW(dfunc.bs)  #get effective strip width
-            tot.trans.len.bs <- sum(new.covdata$length)
+            tot.trans.len.bs <- sum(new.transect.data$length)
             n.hat.bs[i] <- avg.group.size.bs * n.bs * area/(2 * esw.bs * tot.trans.len.bs)  # area stays same as original?   
             
-            
-            #calculate n.hat for this rep
-            #n.bs[i] <- (n.tot.rep * area/(2 * trans.len.rep))/esw  # ? this math doesn't match calculating nhat elsewhere
-            #End Augustine modifications
+
             
           }  # end if esw.bs <= w.hi
           if (plot.bs) 
@@ -155,7 +151,7 @@ F.abund.estim <- function(dfunc, distdata, covdata,
     if (plot.bs) f.plot.bs(dfunc, x.scl.plot, y.scl.plot, col = "red", lwd = 3)
     
     
-    # Calculate CI from bootstrap replicates
+    # Calculate CI from bootstrap replicates using bias-corrected bootstrap method in Manly text
     p <- mean(n.hat.bs > n.hat, na.rm = TRUE)
     z.0 <- qnorm(1 - p)
     z.alpha <- qnorm(1 - ((1 - ci)/2))
@@ -183,71 +179,3 @@ F.abund.estim <- function(dfunc, distdata, covdata,
   
   
 }  # end function
-
-
-
-
-# Junk
-#     # OLD start bootstrap
-# 
-#     for (i in 1:R) {
-#       #sample transects
-#       bs.trans <- sample(unique.transects, replace = TRUE)
-#       #Observation distances for this replicate
-#       d.bs <- unlist(tapply(bs.trans, 1:length(bs.trans), 
-#                             FUN = function(x, df) {
-#                               df[[as.character(x)]]
-#                             }, data.list))
-#       
-# 
-#       
-#       #estimate distance function
-#       dfunc.bs <- F.dfunc.estim(d.bs, likelihood = dfunc$like.form, 
-#                                 w.lo = dfunc$w.lo, w.hi = dfunc$w.hi, expansions = dfunc$expansions, 
-#                                 series = dfunc$series, x.scl = dfunc$call.x.scl, 
-#                                 g.x.scl = g.x.scl.bs, observer = dfunc$call.observer, 
-#                                 warn = FALSE)
-#       
-#       #Store ESW if it converged
-#       if (dfunc.bs$convergence == 0) {
-#         esw <- ESW(dfunc.bs)
-#         if (esw <= dfunc$w.hi) {
-#           
-#           #Begin Augustine modifications
-#           #Calculate n for this rep
-#           n.rep=sum(!is.na(d.bs))
-#           #Calculate total transect length for this rep
-#           trans.len.rep=sum(transect.lengths[match(bs.trans,transect.lengths[,1]),2])
-#           #Calculate group sizes and total n for this rep
-#           if(!missing(group.sizes)){
-#             n.tot.rep=sum(group.sizes[sort(bs.trans)],na.rm=T) #Augustine modification
-#           }else{
-#             n.tot.rep=n.rep*avg.group.size
-#           }
-#           #calculate n.hat for this rep
-#           n.bs[i] <- (n.tot.rep * area/(2 * trans.len.rep))/esw
-#           #End Augustine modifications
-#           
-#         }
-#         if (plot.bs) 
-#           f.plot.bs(dfunc.bs, x.scl.plot, y.scl.plot, 
-#                     col = "blue", lwd = 0.5)
-#       }
-#       if (show.progress) 
-#         setTxtProgressBar(pb, i)
-#     }
-#     if (show.progress) 
-#       close(pb)
-#     if (plot.bs) 
-#       f.plot.bs(dfunc, x.scl.plot, y.scl.plot, col = "red", 
-#                 lwd = 3)
-#     p <- mean(n.bs > n.hat, na.rm = TRUE)
-#     z.0 <- qnorm(1 - p)
-#     z.alpha <- qnorm(1 - ((1 - ci)/2))
-#     p.L <- pnorm(2 * z.0 - z.alpha)
-#     p.H <- pnorm(2 * z.0 + z.alpha)
-#     ans$ci <- quantile(n.bs[!is.na(n.bs)], p = c(p.L, p.H))
-#     ans$B <- n.bs
-#     if (any(is.na(n.bs))) 
-#       cat(paste(sum(is.na(n.bs)), "of", R, "iterations did not converge.\n"))
-#   }
