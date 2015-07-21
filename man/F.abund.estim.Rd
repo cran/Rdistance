@@ -9,8 +9,8 @@ Estimate abundance (or density) given an estimated detection function and supple
 }
 
 \usage{
-F.abund.estim(dfunc, detection.data, transect.data, area = 1, 
-    ci=0.95, R=500, bs.method="transects", plot.bs=FALSE)
+F.abund.estim(dfunc, detection.data, transect.data, area=1, ci=0.95, R=500,
+by.id=FALSE, plot.bs=FALSE)
 }
 
 \arguments{
@@ -56,11 +56,12 @@ F.abund.estim(dfunc, detection.data, transect.data, area = 1,
   \item{R}{The number of bootstrap iterations to conduct when \code{ci} is not NULL. 
     }
     
-  \item{bs.method}{The units that are resampled during bootstrap iterations.
-  Currently, the only option is 'transects', but future versions will allow the resampling of individual detections instead of transects.  See Details.
-  }
+  \item{by.id}{A logical scalar indicating whether to compute transect-level estimates of abundance.  The default (\code{by.id=FALSE}) returns only one overall abundance estimate).}
     
   \item{plot.bs}{A logical scalar indicating whether to plot individual bootstrap iterations.}
+  
+
+  
 }
 
 
@@ -72,13 +73,10 @@ where n.indiv is either \code{avg.group.size * n} or \code{sum(group.sizes)}, an
 is the effective strip width computed from the estimated distance function (i.e., \code{ESW(dfunc)}). 
 
 The confidence interval for abundance assumes that the fundamental units of replication 
-(transects or individual detections) are independent. The 
-bias corrected bootstrap method used here resamples the units of replication and recalculates the 
-model's parameter estimates.  If a double-observer data frame is included in \code{dfunc}, 
-rows of the double-observer data frame are re-sampled each bootstrap iteration.  
+(transects) are independent. The bias corrected bootstrap method used here resamples the units of replication (transects) and recalculates the model's parameter estimates.  If a double-observer data frame is included in \code{dfunc}, rows of the double-observer data frame are re-sampled each bootstrap iteration.  
 No model selection is performed. By default, \code{R} = 500 
 iterations are performed, afterwhich the bias corrected confidence intervals are computed 
-using the method given in Manly (1997, section 3.4).  
+using the method given in Manly (1997, section 3.4). 
 
 
 }
@@ -98,7 +96,8 @@ all the components of a "dfunc" object (see \code{F.dfunc.estim}), plus,
   \item{area}{The study area size used in the estimate of abundance.}
   \item{tran.len}{The total length of transects used in the estimate of abundance.}
   \item{esw}{Effective strip width used in the estimate of abundance.  This can be computed with \code{ESW(dfunc)}.}
-  \item{avg.group.size}{The average group size used in the estimate.}  
+  \item{avg.group.size}{The average group size used in the estimate.}
+  \item{nhat.df}{A data.frame of transect-level abundance (or density) estimates (if \code{by.id = TRUE}).}
 }
 
 \author{
@@ -117,22 +116,18 @@ London: Chapman and Hall.
 }
 
 \examples{
-# Load the example datasets for sparrow detections and transects from package
+# Load the example datasets of sparrow detections and transects from package
 data(sparrow.detections)
 data(sparrow.transects)
 
-# Compute perpendicular, off-transect distances from the observer's sight distance and angle
-sparrow.detections$dist <- perp.dists(obs.dist=sparrow.detections$sightdist,
-                                  obs.angle=sparrow.detections$sightangle)
-
-# Fit detection function object
+# Fit detection function to perpendicular, off-transect distances
 dfunc <- F.dfunc.estim(sparrow.detections, w.hi=150)
 
 # Estimate abundance given a detection function
 # Note, area=10000 converts to density per hectare (for distances measured in meters)
 # Note, a person should do more than R=20 iterations 
 fit <- F.abund.estim(dfunc, detection.data=sparrow.detections, transect.data=sparrow.transects,
-                     area=10000, R=20, ci=0.95, plot.bs=TRUE)
+                     area=10000, R=20, ci=0.95, plot.bs=TRUE, by.id=FALSE)
 }
 
 \keyword{ model }

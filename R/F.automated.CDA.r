@@ -2,13 +2,13 @@ F.automated.CDA <- function (detection.data, transect.data,
                              w.lo=0, w.hi=max(dist),
                              likelihoods=c("halfnorm", "hazrate", "uniform", "negexp", "Gamma"),
                              series=c("cosine", "hermite", "simple"), expansions=0:3, warn=TRUE,
-                             area=1, ci=0.95, R=500, bs.method="transects", plot.bs=FALSE,                          
+                             area=1, ci=0.95, R=500, by.id=FALSE, plot.bs=FALSE,                          
                              plot=TRUE, ...){
   
   
   
   # Stop and print error if a 'dist' column isn't provided in detection.data
-  if(identical(any(names(detection.data) == "dist"), FALSE))
+  if(!("dist" %in% names(detection.data)))
     stop("There is no column named 'dist' in your detection.data.")
   
   # extract distance vector from distdata
@@ -128,13 +128,10 @@ F.automated.CDA <- function (detection.data, transect.data,
     plot(dfunc)
     mtext("BEST FITTING FUNCTION", side = 3, cex = 1.5, line = 3)
   }
-#   if (missing(group.size)) {
-#     abund <- F.abund.estim(dfunc, avg.group.size = 1, area = area, 
-#                             transects = transects, transect.lengths=transect.lengths)
-#   }
-#   else {
+
+  
   abund <- F.abund.estim(dfunc, detection.data=detection.data, transect.data=transect.data,
-                         area=area, ci=ci, R=R, bs.method=bs.method, plot.bs=plot.bs)
+                         area=area, ci=ci, R=R, plot.bs=plot.bs, by.id=by.id)
 
 #   }
   cat("\n\n---------------- Final Automated CDS Abundance Estimate -------------------------------\n")

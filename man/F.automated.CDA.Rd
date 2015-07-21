@@ -13,7 +13,7 @@ Perform automated classical detection function selection and estimation of abund
 F.automated.CDA(detection.data, transect.data, w.lo=0, w.hi=max(dist),
 likelihoods=c("halfnorm", "hazrate", "uniform", "negexp", "Gamma"),
 series=c("cosine", "hermite", "simple"), expansions=0:3, warn=TRUE,
-area=1, ci=0.95, R=500, bs.method="transects", plot.bs=FALSE, plot=TRUE, ...)
+area=1, ci=0.95, R=500, by.id=FALSE, plot.bs=FALSE, plot=TRUE, ...)
 
 }
 
@@ -50,7 +50,7 @@ See \code{F.abund.estim} documentation for definition.}
 This parameter is passed to \code{F.abund.estim}.
 See \code{F.abund.estim} documentation for definition.}
 
-\item{bs.method}{
+\item{by.id}{
 This parameter is passed to \code{F.abund.estim}.
 See \code{F.abund.estim} documentation for definition.}
 
@@ -78,11 +78,7 @@ Additional parameters passed to \code{F.dfunc.estim}, which in turn are passed t
 }
 
 \details{
-During model selection, each series and number of expansions is crossed with each of the likelihoods. For example, if \code{likelihoods} has 3 elements, \code{series} has 2 elements, and \code{expansions} has 4 elements, the total number of models fitted is 
-    3 (likelihoods) * 2 (series) * 4 (expansions) = 24 models.  By default, every available (classic) distance 
-    function is fitted.
-The default specification results in 5 (likelihoods) * 3 (series) X * (expansions) = 60 
-fitted models.  The model with lowest AIC is choosen as 'best', and estimation of abundance proceeds using that model.
+During model selection, each series and number of expansions is crossed with each of the likelihoods. For example, if \code{likelihoods} has 3 elements, \code{series} has 2 elements, and \code{expansions} has 4 elements, the total number of models fitted is 3 (likelihoods) * 2 (series) * 4 (expansions) = 24 models.  The default specification fits 41 detection functions from the "halfnorm", "hazrate", "uniform", "negexp", and "Gamma" likelihoods (note that Gamma does not currently implement expansions, see \code{\link{Gamma.like}}).  The model with lowest AIC is choosen as 'best', and estimation of abundance proceeds using that model.
 }   
  
 \value{
@@ -103,13 +99,9 @@ fitted models.  The model with lowest AIC is choosen as 'best', and estimation o
 }
 
 \examples{
-# Load the example datasets for sparrow detections and transects from package
+# Load the example datasets of sparrow detections and transects from package
 data(sparrow.detections)
 data(sparrow.transects)
-
-# Compute perpendicular, off-transect distances from the observer's sight distance and angle
-sparrow.detections$dist <- perp.dists(obs.dist=sparrow.detections$sightdist,
-                                  obs.angle=sparrow.detections$sightangle)
 
 # Automate fitting multiple detection functions
 # And estimate abundance (density per ha in this case) given the 'best' detection function
@@ -118,8 +110,8 @@ sparrow.detections$dist <- perp.dists(obs.dist=sparrow.detections$sightdist,
 F.automated.CDA(detection.data=sparrow.detections, transect.data=sparrow.transects,
                 likelihood=c("halfnorm", "hazrate", "negexp"),
                 series=c("cosine", "simple"),
-                expansions=c(0, 1), area=10000, R=20, ci=0.95, plot.bs=FALSE,
-                bs.method="transects", w.hi=150, plot=TRUE)
+                expansions=c(0, 1), area=10000, R=20, ci=0.95, by.id=FALSE,
+                plot.bs=FALSE, w.hi=150, plot=TRUE)
 }
 
 \keyword{ model }

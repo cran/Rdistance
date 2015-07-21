@@ -9,7 +9,7 @@ triangular.like <- function(b, dist, w.lo, w.hi, series="", expansions=0, scale=
 
 ## ------------------------------------------------------------------------
 # Part 2:  The starting values, limits, and names of parameters in the likelihood
-triangular.start.limits <- function(dist, w.lo, w.hi){
+triangular.start.limits <- function(dist, expansions, w.lo, w.hi){
   list(start=max(dist)*.75,
        lowlimit=w.lo,
        highlimit=w.hi,
@@ -17,7 +17,7 @@ triangular.start.limits <- function(dist, w.lo, w.hi){
   }
 
 
-## ----, fig.width=6, fig.height=4-----------------------------------------
+## ---- fig.width=6, fig.height=4------------------------------------------
 # A function to generate triangular random deviates
 rtriang <- function(n, b){
   x <- seq(0, b, length=500)
@@ -31,7 +31,7 @@ set.seed(123)
 d <- rtriang(500, 100)  # true b = 100
 hist(d)
 
-## ----, fig.width=6, fig.height=4-----------------------------------------
+## ---- fig.width=6, fig.height=4------------------------------------------
 # Fit detection function with user-defined "triangular" likelihood
 # Requires the F.dfunc.estim function from Rdistance
 require(Rdistance)
