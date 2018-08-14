@@ -1,5 +1,79 @@
-AIC.dfunc=function (object, ..., k = 2, n = length(object$dist)) 
+#' @name AIC.dfunc
+#' @aliases AIC.dfunc
+#' @title AICc and related fit statistics for detection function objects
+#' @description Computes AICc, AIC, or BIC for estimated distance functions.
+#' @param object An estimated detection function object.  An estimated detection 
+#'   function object has class 'dfunc', and is usually produced by a call to 
+#'   \code{dfuncEstim}.
+#' @param \dots Required for compatibility with the general \code{AIC} method.  Any 
+#'   extra arguments to this function are ignored.
+#' @param criterion String specifying the criterion to compute. Either 
+#'   "AICc", "AIC", or "BIC".
+#' @details Regular Akaike's information criterion 
+#'   (\url{http://en.wikipedia.org/wiki/Akaike_information_criterion}) (\eqn{AIC}) is 
+#'   \deqn{AIC = LL + 2p,}{AIC = (LL) + 2p,}
+#'   where \eqn{LL} is the maximized value of the log likelihood 
+#'   (the minimized value of the negative log 
+#'   likelihood) and \eqn{p} is the 
+#'   number of coefficients estimated in the detection function.  For 
+#'   \code{dfunc} objects, \eqn{AIC} = \code{obj$loglik + 2*length(coef(obj))}.  
+#'   
+#'   A correction 
+#'   for small sample size, \eqn{AIC_c}{AICc}, is 
+#'   \deqn{AIC_c = LL + 2p + \frac{2p(p+1)}{n-p-1},}{AIC_c = LL + 2p + (2p(p+1))/(n-p-1),} 
+#'   where \eqn{n} is sample 
+#'   size or number of detected groups for distance analyses.  By default, this function 
+#'   computes \eqn{AIC_c}{AICc}.   \eqn{AIC_c}{AICc} converges quickly to \eqn{AIC} 
+#'   as \eqn{n} increases.
+#'   
+#'   The Bayesian Information Criterion (BIC) is
+#'   \deqn{BIC = LL + log(n)p,}{BIC = (LL) + log(n)p}. 
+#'   
+#' @return A scalar. By default, the value of AICc for the 
+#' estimated distance function \code{obj}.
+#' 
+#' @references Burnham, K. P., and D. R. Anderson, 2002. 
+#' \emph{Model selection and multi-model inference: 
+#'    A practical information-theoretic approach, Second ed.} 
+#'    Springer-Verlag. ISBN 0-387-95364-7.
+#'   
+#'   McQuarrie, A. D. R., and Tsai, C.-L., 1998. \emph{Regression and 
+#'   time series model selection.} 
+#'   World Scientific. ISBN 981023242X
+#'   
+#' @author Trent McDonald, WEST Inc.,  \email{tmcdonald@west-inc.com}
+#' @seealso \code{\link{coef}}, \code{\link{dfuncEstim}}
+#' @examples # Load the example dataset of sparrow detections from package
+#'   data(sparrowDetectionData)
+#'   
+#'   # Fit detection function to perpendicular, off-transect distances
+#'   dfunc <- dfuncEstim(dist~1,
+#'                       detectionData=sparrowDetectionData, 
+#'                       w.hi=150)
+#'   
+#'   # Compute fit statistics
+#'   AIC(dfunc)  # AICc
+#'   AIC(dfunc, criterion="AIC")  # AIC
+#'   AIC(dfunc, criterion="BIC")  # BIC
+#' @keywords model
+#' @export
+
+AIC.dfunc=function (object, ..., criterion="AICc") 
 {
+  if( criterion == "AIC"){
+    k <- 2
+    n <- Inf
+  } else if( criterion == "BIC"){
+    k <- log(length(object$dist))
+    n <- Inf
+  } else {
+    k <- 2
+    n <- length(object$dist)
+    criterion <- "AICc"
+  }
+    
   p <- length(coef(object))
-  k*p + 2*object$loglik + (k * p * (p + 1))/(n - p - 1)
+  ans <- k*p + 2*object$loglik + (k * p * (p + 1))/(n - p - 1)
+  attr(ans, "criterion") <- criterion
+  ans
 }

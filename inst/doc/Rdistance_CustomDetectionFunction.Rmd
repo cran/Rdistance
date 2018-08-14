@@ -1,7 +1,7 @@
 ---
 title: "User-Defined Likelihood Functions in Rdistance"
 author: "Trent L. McDonald and Jason D. Carlisle"
-date: "July 21, 2015"
+date: "August 6, 2018"
 output: pdf_document
 vignette: >
   %\VignetteIndexEntry{Rdistance_CustomDetectionFunction}
@@ -21,6 +21,10 @@ take the following inputs, in this order:
 
 * `a` = the parameter vector for the likelihood.  
 * `dist` = the vector of observed distances.  
+* `covars` = a matrix of covariates, one line per detection. If no covariates 
+are included, set `covars` = NULL.  
+* `pointSurvey` = a logical scalar equal to TRUE if distances 
+are radial from a point, FALSE if distances are perpendicular off-transect.  
 * `w.lo` = the left truncation (minimum distance).  
 * `w.hi` = the right truncation (maximum distance).  
 * `series` = the name of the expansion series. If the likelihood does not use a series, this
@@ -47,8 +51,10 @@ there are _p_ parameters in the likelihood.
 A user-defined likelihood function: the triangular distribution on [0, b].
 ```{r}
 # Part 1:  The likelihood function
-triangular.like <- function(b, dist, w.lo, w.hi, series="", expansions=0, scale=TRUE){
-  L <- (2/b)*(1 - dist/b)
+triangular.like <- function(a, dist, covars=NULL, 
+                     pointSurvey=FALSE, w.lo=0, w.hi, 
+                     series="", expansions=0, scale=TRUE){
+  L <- (2/a)*(1 - dist/a)
   L[ L < 0 ] <- 0
   L
   }
@@ -83,16 +89,34 @@ d <- rtriang(500, 100)  # true b = 100
 hist(d)
 ```
     
-```{r, fig.width=6, fig.height=4}
+```{r}
 # Fit detection function with user-defined "triangular" likelihood
 # Requires the F.dfunc.estim function from Rdistance
 require(Rdistance)
-tri.dfunc <- F.dfunc.estim( d, likelihood="triangular", w.hi=150 )
+tri.dfunc <- dfuncEstim( d~1, likelihood="triangular", w.hi=150 )
+tri.dfunc
+```
+
+All `dfunc` methods (e.g., `plot`, `predict`, etc.) should work with custom distance functions.
+```{r, fig.width=6, fig.height=4}
 plot(tri.dfunc)
+AIC(tri.dfunc)
 ```
 
 
-For the triangular case, the true effective strip width is equal to the following:
+The effective strip width of a distance function is simply the 
+area under the distance function 
+after scaling.
+In `Rdistance`, scaling is 
+accomplished by setting `x.scl` and `g.x.scl` in the 
+call to `dfuncEstim`.  `dfuncEstim` scales the distance 
+function such that g(`x.scl`) = `g.x.scl`.  The 
+default is `x.scl` = 0 and `g.x.scl` = 1. 
+
+For the triangular case, g(0) = 1 and the true effective strip
+width is simply the area of a right triangle located at the origin.
+The true effective strip width of the triangular distance function 
+is:
 ```{r}
 tri.dfunc$g.x.scl*tri.dfunc$param / 2
 ```

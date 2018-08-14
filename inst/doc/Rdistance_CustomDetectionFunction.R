@@ -1,7 +1,9 @@
 ## ------------------------------------------------------------------------
 # Part 1:  The likelihood function
-triangular.like <- function(b, dist, w.lo, w.hi, series="", expansions=0, scale=TRUE){
-  L <- (2/b)*(1 - dist/b)
+triangular.like <- function(a, dist, covars=NULL, 
+                     pointSurvey=FALSE, w.lo=0, w.hi, 
+                     series="", expansions=0, scale=TRUE){
+  L <- (2/a)*(1 - dist/a)
   L[ L < 0 ] <- 0
   L
   }
@@ -31,12 +33,16 @@ set.seed(123)
 d <- rtriang(500, 100)  # true b = 100
 hist(d)
 
-## ---- fig.width=6, fig.height=4------------------------------------------
+## ------------------------------------------------------------------------
 # Fit detection function with user-defined "triangular" likelihood
 # Requires the F.dfunc.estim function from Rdistance
 require(Rdistance)
-tri.dfunc <- F.dfunc.estim( d, likelihood="triangular", w.hi=150 )
+tri.dfunc <- dfuncEstim( d~1, likelihood="triangular", w.hi=150 )
+tri.dfunc
+
+## ---- fig.width=6, fig.height=4------------------------------------------
 plot(tri.dfunc)
+AIC(tri.dfunc)
 
 ## ------------------------------------------------------------------------
 tri.dfunc$g.x.scl*tri.dfunc$param / 2
