@@ -4,8 +4,17 @@
 \alias{smu.like}
 \title{Smoothed likelihood function for distance analyses}
 \usage{
-smu.like(a, dist, covars = NULL, w.lo = 0, w.hi, scale = TRUE,
-  series = NULL, expansions = 0, pointSurvey = FALSE)
+smu.like(
+  a,
+  dist,
+  covars = NULL,
+  w.lo = 0,
+  w.hi,
+  scale = TRUE,
+  series = NULL,
+  expansions = 0,
+  pointSurvey = FALSE
+)
 }
 \arguments{
 \item{a}{A data frame containing the smooth.  This data frame 
@@ -85,11 +94,11 @@ set to \code{NA} and hence not included.
 \examples{
  
 set.seed(238642)
-d <- abs(rnorm(100))
+d <- units::set_units(abs(rnorm(100)), "in")
 dfunc <- dfuncSmu(d~1)
 
 L <- smu.like(a=dfunc$parameters, 
-       dist=dfunc$dist, 
+       dist=dfunc$detections$dist, 
        w.lo=dfunc$w.lo, 
        w.hi=dfunc$w.hi, 
        scale=TRUE)
@@ -102,8 +111,5 @@ L <- smu.like(a=dfunc$parameters,
          \code{\link{uniform.like}},
          \code{\link{negexp.like}},
          \code{\link{halfnorm.like}}
-}
-\author{
-Trent McDonald, WEST, Inc. \email{tmcdonald@west-inc.com}
 }
 \keyword{models}

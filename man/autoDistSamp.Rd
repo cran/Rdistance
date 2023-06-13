@@ -4,12 +4,26 @@
 \alias{autoDistSamp}
 \title{Automated classical distance analysis}
 \usage{
-autoDistSamp(formula, detectionData, siteData, w.lo = 0, w.hi = NULL,
+autoDistSamp(
+  formula,
+  detectionData,
+  siteData,
+  w.lo = 0,
+  w.hi = NULL,
   likelihoods = c("halfnorm", "hazrate", "uniform", "negexp", "Gamma"),
-  series = c("cosine", "hermite", "simple"), expansions = 0:3,
-  pointSurvey = FALSE, warn = TRUE, area = 1, ci = 0.95, R = 500,
-  bySite = FALSE, plot.bs = FALSE, showProgress = TRUE,
-  plot = TRUE, criterion = "AICc", ...)
+  series = c("cosine", "hermite", "simple"),
+  expansions = 0:3,
+  pointSurvey = FALSE,
+  warn = TRUE,
+  area = NULL,
+  ci = 0.95,
+  R = 500,
+  plot.bs = FALSE,
+  showProgress = TRUE,
+  plot = TRUE,
+  criterion = "AICc",
+  ...
+)
 }
 \arguments{
 \item{formula}{This parameter is passed to \code{dfuncEstim}.
@@ -54,9 +68,6 @@ See \code{abundEstim} documentation for definition.}
 See \code{abundEstim} documentation for definition.}
 
 \item{R}{This parameter is passed to \code{abundEstim}.
-See \code{abundEstim} documentation for definition.}
-
-\item{bySite}{This parameter is passed to \code{abundEstim}.
 See \code{abundEstim} documentation for definition.}
 
 \item{plot.bs}{Logical for whether to plot bootstrap 
@@ -132,21 +143,19 @@ data(sparrowSiteData)
 
 # Automate fitting multiple detection functions, and estimate abundance
 # (density per ha in this case), given the 'best' detection function
-# Note, area=10000 converts to density per ha (for distances measured in m)
-# Note, users should do more than R=20 iterations of the bootstrap
-autoDistSamp(formula=dist ~ 1,
-             detectionData=sparrowDetectionData, siteData=sparrowSiteData,
-             likelihood=c("halfnorm", "hazrate"), w.hi=100,
-             series=c("cosine", "simple"), expansions=c(0, 1),
-             area=10000, R=20, ci=0.95, bySite=FALSE,
-             plot.bs=TRUE, plot=FALSE, pointSurvey=FALSE)
+autoDistSamp(formula = dist ~ groupsize(groupsize)
+           , detectionData = sparrowDetectionData
+           , siteData = sparrowSiteData
+           , likelihood = c("halfnorm", "hazrate")
+           , w.hi = units::set_units(100, "m")
+           , expansions = 0
+           , area = units::set_units( 4105, "km^2" )
+           , ci = NULL
+           , plot = FALSE
+           )
+           
 }
 \seealso{
 \code{\link{dfuncEstim}}, \code{\link{abundEstim}}.
-}
-\author{
-Trent McDonald, WEST Inc.,  \email{tmcdonald@west-inc.com}\cr
-        Aidan McDonald, WEST Inc.,  \email{aidan@mcdcentral.org}\cr
-        Jason Carlisle, University of Wyoming and WEST Inc., \email{jcarlisle@west-inc.com}
 }
 \keyword{model}

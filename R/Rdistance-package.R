@@ -2,7 +2,7 @@
 #' 
 #' @title Rdistance - Distance Sampling Analyses for Abundance Estimation
 #' 
-#' 
+#' @description 
 #' \code{Rdistance} contains functions and associated routines to analyze
 #' distance-sampling data collected on point or line transects. 
 #' Some of \code{Rdistance}'s features include:
@@ -90,6 +90,26 @@
 #' requests, etc. through the package's GitHub website
 #' (\url{https://github.com/tmcd82070/Rdistance}).
 #' 
+#' @section Data sets:
+#'  \code{Rdistance} contains four example data sets: two collected using 
+#' line-transect methods (i.e., \code{\link{sparrowDetectionData}} and
+#' \code{\link{sparrowSiteData}}) and two collected using point-transect
+#' (sometimes called a point count) methods (i.e.,
+#' \code{\link{thrasherDetectionData}} and \code{\link{thrasherSiteData}}).
+#' 
+#' These datasets demonstrate the type and format of input data required by
+#' \code{Rdistance} to estimate a detection function and abundance from
+#' distance sampling data collected by surveying line transects or point
+#' transects.  They also allow the user to step through the tutorials described
+#' in the package vignettes.  
+#' 
+#' \code{Rdistance} requires only  detection data to fit 
+#' detection functions, assuming  no covariates in the detection function
+#' (see \code{\link{dfuncEstim}}).  Both detection and
+#' site data are required to estimate abundance or to include
+#' site-level covariates in the detection function (see
+#' \code{\link{abundEstim}}).
+#' 
 #' @section Resources:
 #' The best place to start learning about \code{Rdistance}
 #' is at the package's GitHub Wiki, which hosts several tutorial vignettes and
@@ -107,13 +127,13 @@
 #' @docType package
 #' 
 #' @author Main author and maintainer: Trent McDonald
-#' <tmcdonald@@west-inc.com>
+#' <trent@mcdonalddatasciences.com>
 #' 
 #' Coauthors: Ryan Nielson, Jason Carlisle, and Aidan McDonald
 #' 
 #' Contributors: Ben Augustine, James Griswald, Joel Reynolds, Pham Quang, Earl
 #' Becker, Aaron Christ, Brook Russelland, Patrick McKann, Lacey Jeroue, 
-#' Abigail Hoffman, and Michael Kleinsasser.
+#' Abigail Hoffman, Michael Kleinsasser, and Ried Olson
 #' 
 #' @keywords package
 #' 

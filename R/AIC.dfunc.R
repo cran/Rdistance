@@ -10,7 +10,7 @@
 #' @param criterion String specifying the criterion to compute. Either 
 #'   "AICc", "AIC", or "BIC".
 #' @details Regular Akaike's information criterion 
-#'   (\url{http://en.wikipedia.org/wiki/Akaike_information_criterion}) (\eqn{AIC}) is 
+#'   (\url{https://en.wikipedia.org/wiki/Akaike_information_criterion}) (\eqn{AIC}) is 
 #'   \deqn{AIC = LL + 2p,}{AIC = (LL) + 2p,}
 #'   where \eqn{LL} is the maximized value of the log likelihood 
 #'   (the minimized value of the negative log 
@@ -41,15 +41,13 @@
 #'   time series model selection.} 
 #'   World Scientific. ISBN 981023242X
 #'   
-#' @author Trent McDonald, WEST Inc.,  \email{tmcdonald@west-inc.com}
 #' @seealso \code{\link{coef}}, \code{\link{dfuncEstim}}
-#' @examples # Load the example dataset of sparrow detections from package
+#' 
+#' @examples 
 #'   data(sparrowDetectionData)
-#'   
-#'   # Fit detection function to perpendicular, off-transect distances
 #'   dfunc <- dfuncEstim(dist~1,
 #'                       detectionData=sparrowDetectionData, 
-#'                       w.hi=150)
+#'                       w.hi=units::set_units(150, "m"))
 #'   
 #'   # Compute fit statistics
 #'   AIC(dfunc)  # AICc
@@ -64,11 +62,11 @@ AIC.dfunc=function (object, ..., criterion="AICc")
     k <- 2
     n <- Inf
   } else if( criterion == "BIC"){
-    k <- log(length(object$dist))
+    k <- log(nrow(object$detections))
     n <- Inf
   } else {
     k <- 2
-    n <- length(object$dist)
+    n <- nrow(object$detections)
     criterion <- "AICc"
   }
     

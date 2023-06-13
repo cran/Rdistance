@@ -31,20 +31,17 @@ This is an extractor function for the parameters of an estimated detection funct
 data(sparrowDetectionData)
 
 # Fit half-normal detection function
-dfunc <- dfuncEstim(formula=dist~1,
-                    detectionData=sparrowDetectionData,
-                    likelihood="halfnorm", w.hi=100, pointSurvey=FALSE)
+dfunc <- dfuncEstim(formula=dist~1
+                  , detectionData=sparrowDetectionData)
 
 # Print results
 dfunc
   
 # Extract the coefficient(s)
 coef(dfunc)
+
 }
 \seealso{
 \code{\link{AIC}}, \code{\link{dfuncEstim}}
-}
-\author{
-Trent McDonald, WEST Inc.,  \email{tmcdonald@west-inc.com}
 }
 \keyword{model}

@@ -5,10 +5,26 @@
 \title{Estimate a non-parametric smooth detection function 
 from distance-sampling data}
 \usage{
-dfuncSmu(formula, detectionData, siteData, bw = "SJ-dpi", adjust = 1,
-  kernel = "gaussian", pointSurvey = FALSE, w.lo = 0, w.hi = NULL,
-  x.scl = "max", g.x.scl = 1, observer = "both", warn = TRUE,
-  transectID = NULL, pointID = "point", length = "length")
+dfuncSmu(
+  formula,
+  detectionData,
+  siteData,
+  bw = "SJ-dpi",
+  adjust = 1,
+  kernel = "gaussian",
+  pointSurvey = FALSE,
+  w.lo = units::set_units(0, "m"),
+  w.hi = NULL,
+  x.scl = "max",
+  g.x.scl = 1,
+  observer = "both",
+  warn = TRUE,
+  transectID = NULL,
+  pointID = "point",
+  outputUnits = NULL,
+  length = "length",
+  control = RdistanceControls()
+)
 }
 \arguments{
 \item{formula}{A formula object (e.g., dist ~ 1). 
@@ -181,9 +197,29 @@ meaning surveyed points were not grouped into transects, each 'transect' consist
 of one point. In this case, set \code{transectID} equal to 
 the point's ID and set \code{pointID} equal to 1 for all points.}
 
+\item{outputUnits}{A string giving the symbolic measurment 
+units that results should be reported in.   Any 
+distance measurement unit in \code{units::valid_udunits()} 
+will work.  The strings for common distance symbolic units are: 
+"m" for meters, "ft" for feet, "cm" for centimeters, "mm" for 
+millimeters, "mi" for miles, "nmile" for 
+nautical miles ("nm" is nano meters), "in" for inches, 
+"yd" for yards, "km" for kilometers, "fathom" for fathoms, 
+"chains" for chains, and "furlong" for furlongs.  
+If \code{outputUnits} is unspecified (NULL),
+output units are the same as distance measurements units in 
+\code{data}.}
+
 \item{length}{Character string specifying the (single) column in 
 \code{siteData} that contains transect length. This is ignored if 
 \code{pointSurvey} = TRUE.}
+
+\item{control}{A list containing optimization control parameters such 
+as the maximum number of iterations, tolerance, the optimizer to use, 
+etc.  See the 
+\code{\link{RdistanceControls}} function for explanation of each value,
+the defaults, and the requirements for this list. 
+See examples below for how to change controls.}
 }
 \value{
 An object of class 'dfunc'.  Objects of class 'dfunc' 
@@ -314,10 +350,9 @@ the transect ID column(s)), not \emph{detections} or
 data(sparrowDetectionData)
 data(sparrowSiteData)
 
-
 # Compare smoothed and half-normal detection function
-dfuncSmu <- dfuncSmu(dist~1, sparrowDetectionData, w.hi=150)
-dfuncHn  <- dfuncEstim(formula=dist~1,sparrowDetectionData,w.hi=150)
+dfuncSmu <- dfuncSmu(dist~1, sparrowDetectionData, w.hi=units::set_units(150, "m"))
+dfuncHn  <- dfuncEstim(formula=dist~1,sparrowDetectionData,w.hi=units::set_units(150, "m"))
 
 # Print and plot results
 dfuncSmu
@@ -349,8 +384,5 @@ Silverman, B. W. (1986) \emph{Density Estimation}. London: Chapman and Hall.
 \seealso{
 \code{\link{abundEstim}}, \code{\link{autoDistSamp}}, 
 \code{\link{dfuncEstim}} for the parametric version.
-}
-\author{
-Trent McDonald, WEST Inc.,  \email{tmcdonald@west-inc.com}\cr
 }
 \keyword{model}

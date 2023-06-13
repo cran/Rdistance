@@ -71,8 +71,6 @@
 #' between \code{w.lo} and \code{w.hi} is 1.0. If \code{scale} = FALSE, 
 #' the integral of the smoothed curve is something else.
 #'  
-#' @author Trent McDonald, WEST, Inc. \email{tmcdonald@west-inc.com}
-#'         
 #' @seealso \code{\link{dfuncSmu}},
 #'          \code{\link{hazrate.like}},
 #'          \code{\link{uniform.like}},
@@ -81,11 +79,11 @@
 #'          
 #' @examples  
 #' set.seed(238642)
-#' d <- abs(rnorm(100))
+#' d <- units::set_units(abs(rnorm(100)), "in")
 #' dfunc <- dfuncSmu(d~1)
 #' 
 #' L <- smu.like(a=dfunc$parameters, 
-#'        dist=dfunc$dist, 
+#'        dist=dfunc$detections$dist, 
 #'        w.lo=dfunc$w.lo, 
 #'        w.hi=dfunc$w.hi, 
 #'        scale=TRUE)

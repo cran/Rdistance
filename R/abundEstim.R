@@ -2,56 +2,51 @@
 #'   
 #' @description Estimate abundance (or density) given an estimated detection
 #'   function and supplemental information on observed group sizes, transect
-#'   lengths, area surveyed, etc.  Also computes confidence intervals of
-#'   abundance (or density) using the bias corrected bootstrap method.
+#'   lengths, area surveyed, etc.  Also computes confidence intervals on
+#'   abundance (or density) using a the bias corrected bootstrap method.
 #'   
 #' @param dfunc An estimated 'dfunc' object produced by \code{dfuncEstim}.
 #' 
-#' @param detectionData A data.frame with each row representing one detection
-#'   (see example dataset, \code{\link{sparrowDetectionData}}) and with at least
-#'   the following three columns: 
-#'   \itemize{ 
-#'     \item \code{siteID} = ID of the transect or point. 
-#'     \item \code{groupsize} = the number of individuals in the detected group. 
-#'     \item \code{dist} = the perpendicular, off-transect distance or radial
-#'       off-point distance to the detected group. 
-#'   }
+#' @inheritParams dfuncEstim 
+#' 
+#' @param area A scalar containing the total area of 
+#' inference. Commonly, this is study area size.  
+#' If \code{area} is NULL (the default), 
+#' \code{area} will be set to 1 square unit of the output units and this
+#' produces abundance estimates equal density estimates. 
+#' If \code{area} is not NULL, it must have measurement units 
+#' assigned by the \code{units} package. 
+#' The units on \code{area} must be convertible
+#' to squared output units. Units 
+#' on \code{area} must be two-dimensional. 
+#' For example, if output units are "foo", 
+#' units on area must be convertible to "foo^2" by the \code{units}
+#' package. 
+#' Units of "km^2", "cm^2", "ha", "m^2", "acre", "mi^2", and many
+#' others are acceptable.  
 #'   
-#' @param siteData A data.frame with each row representing one site 
-#'   (transect or point) (see example dataset, 
-#'   \code{\link{sparrowSiteData}}). If the data in \code{detectionData}
-#'   is from line transects, \code{siteData} must have at 
-#'   least the following two columns:
-#'   \itemize{ 
-#'     \item \code{siteID} = ID of the transect or point. This vector 
-#'     is used during bootstrapping to resample sites. 
-#'     \item \code{length} = the length of the transect. 
-#'   }
-#'   If the data in \code{detectionData}
-#'   is from point transects, \code{siteData} must have a
-#'   \code{siteID} column only.  For both data types, \code{siteID} 
-#'     is used during bootstrapping to resample sites. 
-#'    
-#'     
-#' @param area Total study area size.  If \code{area} = 1, density is estimated.
-#'   Density has units (number of animals) per (squared 
-#'   units of the distance measurements).  For example, if distance values fitted
-#'   in \code{dfunc} are meters, density is number of individuals per
-#'   square meter.  If distances are miles, density is number of
-#'   individuals per square mile.  If \code{area} > 1, total abundance on the
-#'   study area is estimated and units are (number of animals).  This can also
-#'   be used to convert units for density. For example, if distance values fitted
-#'   in \code{dfunc} are meters, and area is set to 10,000, density is number
-#'   of individuals per hectare (ha; 1 ha = 10,000 square meters).
-#'   square meter.
-#'   
+#' @param singleSided Logical scaler. If only one side of the transect was 
+#' observed, set \code{singleSided} = TRUE. If both sides of line-transects were 
+#' observed, \code{singleSided} = FALSE. Some surveys
+#' observe only one side of transect lines for a variety of logistical reasons. 
+#' For example, some aerial line-transect surveys place observers on only one
+#' side of the aircraft. This parameter effects only line-transects.  When 
+#' \code{singleSided} = TRUE, surveyed area is halved and the density 
+#' estimator's denominator (see \bold{Details})
+#' is \eqn{(ESW)(L)}, not \eqn{2(ESW)(L)}.
+#' 
 #' @param ci A scalar indicating the confidence level of confidence intervals. 
-#'   Confidence intervals are computed using the bias corrected bootstrap
+#'   Confidence intervals are computed using a bias corrected bootstrap
 #'   method. If \code{ci = NULL}, confidence intervals are not computed.
 #'   
 #' @param R The number of bootstrap iterations to conduct when \code{ci} is not
 #'   NULL.
 #'   
+#' @param lengthColumn Character string specifying the (single) column in 
+#'   \code{siteData} that contains transect lengths. This is ignored if 
+#'   \code{pointSurvey} = TRUE. This column must have measurement units. 
+#'   
+#' 
 #' @param plot.bs A logical scalar indicating whether to plot individual
 #'   bootstrap iterations.
 #'   
@@ -61,95 +56,174 @@
 #'   progress bar if running this within another function. Otherwise, 
 #'   it is handy to see progress of the bootstrap iterations.
 #'   
-#' @param bySite A logical scalar indicating whether to compute site-level
-#'   estimates of abundance. The default (\code{bySite=FALSE}) returns only one
-#'   overall abundance estimate. This routine does not calculate confidence
-#'   intervals for these site-level abundance estimates, so \code{ci} is set to
-#'   \code{NULL} if \code{bySite = TRUE}. See \code{\link{estimateN}}.
-#'   
-#' @details The abundance estimate for line transect surveys (if no covariates
-#'    are included in the detection function) is \deqn{N =
-#'   \frac{n.indiv(area)}{2(ESW)(tot.trans.len)}}{N = n.indiv*area /
-#'   (2*ESW*tot.trans.len)} where \code{n.indiv} is either \code{avg.group.size * n} or
-#'   \code{sum(group.sizes)}, and \code{ESW} is the effective strip width
+#' @details The abundance estimate for line-transect surveys (if no covariates
+#'    are included in the detection function and both sides of the transect 
+#'    were observed) is 
+#'    \deqn{N =\frac{n(A)}{2(ESW)(L)}}{%
+#'          N = n*A / (2*ESW*L)} 
+#'    where \emph{n} is total number of sighted individuals 
+#'   (i.e., \code{sum(dfunc$detections$groupSizes)}), \emph{L} is the total length of 
+#'   surveyed transect (i.e., \code{sum(siteData[,lengthColumn])}),
+#'   and \emph{ESW} is effective strip width
 #'   computed from the estimated distance function (i.e., \code{ESW(dfunc)}).
+#'   If only one side of transects were observed, the "2" in the denominator 
+#'   is not present (or, replaced with a "1"). 
 #'   
-#'   The confidence interval for abundance assumes that the fundamental units of
+#'   The abundance estimate for point transect surveys (if no covariates are
+#'   included) is 
+#'    \deqn{N =\frac{n(A)}{\pi(ESR^2)(P)}}{%
+#'          N = n*A / ((3.1415)*ESR^2*(P))} 
+#'    where \emph{n} is total number of sighted individuals,
+#'    \emph{P} is the total number of surveyed points, 
+#'    and \emph{ESR} is effective search radius 
+#'    computed from the estimated distance function (i.e., \code{ESR(dfunc)}).
+#'
+#'  Setting \code{plot.bs=FALSE} and \code{showProgress=FALSE} 
+#'     suppresses all intermediate output.  
+#'     
+#' @section Bootstrap Confidence Intervals:
+#' 
+#'   The bootstrap confidence interval for abundance 
+#'   assumes that the fundamental units of
 #'   replication (lines or points, hereafter "sites") are independent.
 #'   The bias corrected bootstrap
-#'   method used here resamples the units of replication (sites) and
-#'   recalculates the model's parameter estimates.  If a double-observer data
+#'   method used here resamples the units of replication (sites), 
+#'   refits the distance function, and estimates abundance using 
+#'   the resampled counts and re-estimated distance function. 
+#'   The original data frames, \code{detectionData} and \code{siteData}, 
+#'   are needed here for bootstrapping because they contain the transect 
+#'   and detection information.
+#'   If a double-observer data
 #'   frame is included in \code{dfunc}, rows of the double-observer data frame
-#'   are re-sampled each bootstrap iteration. No model selection is performed.
+#'   are re-sampled each bootstrap iteration. 
+#'   
+#'   This routine does not 
+#'   re-select the distance model fitted to resampled data.  The 
+#'   model in the input object is re-fitted every iteration.  
+#'   
 #'   By default, \code{R} = 500 iterations are performed, after which the bias
-#'   corrected confidence intervals are computed using the method given in Manly
-#'   (1997, section 3.4).
+#'   corrected confidence intervals are computed (Manly, 1997, section 3.4).
 #'   
-#' Setting \code{plot.bs=FALSE} and \code{showProgress=FALSE} 
-#'     suppresses all intermediate output.  This is good when calling 
-#'     \code{abundEstim} from within other functions or during simulations.
+#'   During bootstrap iterations, the distance function can fail 
+#'   to converge on the resampled data.   An iteration can fail 
+#'   to converge for a two reasons:
+#'   (1) no detections on the iteration, and (2) bad configuration 
+#'   of distances on the iteration which pushes parameters to their 
+#'   bounds. When an iteration fails to produce a valid 
+#'   distance function, \code{Rdistance} 
+#'   simply skips the intration, effectively ignoring these 
+#'   non-convergent iterations. 
+#'   If the proportion of non-convergent iterations is small 
+#'   (less than 20% by default), the resulting confidence interval 
+#'   on abundance is 
+#'   probably valid.  If the proportion of non-convergent iterations 
+#'   is not small (exceeds 20% by default), a warning is issued.  
+#'   The print method (\code{print.abund}) is the routine that  issues this 
+#'   warning. The warning can be 
+#'   turned off by setting \code{maxBSFailPropForWarning} in the 
+#'   print method to 1.0, or by modifying the code in \code{RdistanceControls()}
+#'   to re-set the default threshold and storing the modified 
+#'   function in your \code{.GlobalEnv}.  Additional iterations may be needed 
+#'   to achieve an adequate number. Check number of convergent iterations by 
+#'   counting non-NA rows in output data frame 'B'.  
 #'   
-#' @return If \code{bySite} is FALSE, an 'abundance estimate' object, a list of
+#' @section Missing Transect Lengths:
+#' 
+#'   \bold{Line transects}: The transect length column of \code{siteData} can contain missing values. 
+#'   NA length transects are equivalent
+#'   to 0 [m] transects and do not count toward total surveyed units.  NA length
+#'   transects are handy if some off-transect distance observations should be included
+#'   when estimating the distance function, but not when estimating abundance. 
+#'   To do this, include the "extra" distance observations in the detection data frame, with valid
+#'   site IDs, but set the length of those site IDs to NA in the site data frame. 
+#'   Group sizes associated with NA length transects are dropped and not counted toward density
+#'   or abundance. Among other things, this allows estimation of abundance on one 
+#'   study area using off-transect distance observations from another.  
+#'   
+#'   \bold{Point transects}: Point transects do not have length. The "length" of point transects
+#'   is the number of points on the transect. \code{Rdistance} treats individual points as independent 
+#'   and bootstrap resampmles them to estimate variance. To include distance obervations
+#'   from some points but not the number of targets seen, include a separate "length" column 
+#'   in the site data frame with NA for the "extra" points. Like NA length line transects, 
+#'   NA "length" point transects are dropped from the count of points and group sizes on these 
+#'   transects are dropped from the counts of targets.  This allows users to estimate their distance 
+#'   function on one set of observations while inflating counts from another set of observations.  
+#'   A transect "length" column is not required for point transects. Values in the \code{lengthColumn}
+#'   do not matter except for NA (e.g., a column of 1's mixed with NA's is acceptable). 
+#' 
+#'   
+#' @return An 'abundance estimate' object, which is a list of
 #'   class \code{c("abund", "dfunc")}, containing all the components of a "dfunc"
-#'   object (see \code{dfuncEstim}), plus the following: 
+#'   object (see \code{\link{dfuncEstim}}), plus the following: 
 #'   
-#'  \item{abundance}{Estimated abundance in the study area (if \code{area} >
-#'  1) or estimated density in the study area (if \code{area} = 1).}
-#'   \item{n}{The number of detections
-#'  (not individuals, unless all group sizes = 1) used in the estimate of
-#'  abundance.}
-#'   \item{area}{Total area of inference. Study area size}
-#'   \item{esw}{Effective strip width for line-transects, effective
-#'   radius for point-transects.  Both derived from \code{dfunc}. 
-#'   See \code{\link{ESW}}} or \code{\link{EDR}} for formulas.
-#'   \item{n.sites}{Total number of transects for line-transects, 
-#'   total number of points for point-transects.}
-#'   \item{tran.len}{Total transect length. NULL for point-transects.}
-#'   \item{avg.group.size}{Average group size}
-#'   \item{ci}{The bias corrected bootstrap confidence interval for
-#'   \code{n.hat}.  The names of this component give the quantiles of the
-#'   bootstrap distribution used to compute the bias corrected interval.} 
-#'   \item{B}{A vector or length \code{R} containing all bootstrap estimated
-#'   population sizes. If a particular iteration did not converge, the
-#'   corresponding entry in \code{B} will be \code{NA}. The bootstrap
-#'   distribution of \code{n.hat} can be plotted with \code{hist(x$B)}, where
-#'   \code{x} is an 'abundance estimate' object. The confidence interval in
-#'   \code{ci} can be reproduced with \code{quantile(x$B[!is.na(x$B)],
-#'   p=names(x$ci) )}.}
+#'   \item{density}{Estimated density on the sampled area with units. The \emph{effectively}
+#'   sampled area is 2*L*ESW (not 2*L*w.hi). Density has squared units of the 
+#'   requested output units.  Convert density to other units with  
+#'   \code{units::set_units(x$density, "<units>").}} 
+#'   
+#'   \item{n.hat}{Estimated abundance on the study area (if \code{area} >
+#'   1) or estimated density on the study area (if \code{area} = 1), without units.}
+#'  
+#'   \item{n}{The number of detections (not individuals, unless all group sizes = 1) 
+#'   on non-NA length transects
+#'   used to compute density and abundance.}
+#'   
+#'   \item{n.seen}{The total number of individuals seen on transects with non-NA
+#'   length. Sum of group sizes used 
+#'   to estimate density and abundance.}
+#'  
+#'   \item{area}{Total area of inference in squared output units.}
+#'   
+#'   \item{surveyedUnits}{The total length of sampled transect with units. This is the sum 
+#'   of the \code{lengthColumn} column of \code{siteData}. }
+#'   
+#'   \item{avg.group.size}{Average group size on transects with non-NA length transects.}
+#'   
+#'   \item{rng.group.size}{Minimum and maximum groupsizes observed on non-NA length transects.}
+#'   
+#'   \item{effDistance}{A vector containing effective sample distance.  If covariates
+#'   are not included, length of this vector is 1 because effective sampling distance 
+#'   is constant over detections. If covariates are included, this vector has length
+#'   equal to the number of detections (i.e., \code{x$n}).  This vector was produced 
+#'   by a call to \code{effectiveDistance()} with \code{newdata} set to NULL.}
+#'   
+#'   \item{n.hat.ci}{A vector containing the lower and upper limits of the 
+#'   bias corrected bootstrap confidence interval for
+#'   abundance. } 
+#'   
+#'   \item{density.ci}{A vector containing the lower and upper limits of the 
+#'   bias corrected bootstrap confidence interval for
+#'   density, with units.
+#'   }
+#'
+#'   \item{effDistance.ci}{A vector containing the lower and upper limits of the 
+#'   bias corrected bootstrap confidence interval for \emph{average}
+#'   effective sampling distance.
+#'   }
+#'   
+#'   \item{B}{A data frame containing bootstrap values of coefficients, 
+#'   density, and effective distances.  Number of rows is always 
+#'   \code{R}, the requested number of bootstrap 
+#'   iterations.  If a particular iteration did not converge, the
+#'   corresponding row in \code{B} is \code{NA} (hence, use 'na.rm = TRUE' 
+#'   when computing summaries). Columns 1 through \code{length(coef(dfunc))}
+#'   contain bootstrap realizations of the distance function's coefficients. 
+#'   The second to last column contains bootstrap values of
+#'   density (with units).  The last column of B contains bootstrap 
+#'   values of effective sampling distance or radius (with units). If the 
+#'   distance function contains covariates,
+#'   the effective sampling distance column is the average 
+#'   effective distance over detections 
+#'   used during the associated bootstrap iteration. }
+#'   
+#'   \item{nItersConverged}{The number of bootstrap iterations that converged.  }
+#'   
 #'   \item{alpha}{The (scalar) confidence level of the
 #'   confidence interval for \code{n.hat}.} 
-#'   
-#'   If \code{bySite} is TRUE, a data frame containing site-level 
-#'   estimated abundance.  The data frame is an exact copy of \code{siteData}
-#'   with the following columns tacked onto the end:
-#'    
-#'   \item{effDist}{The effective sampling distance at the site.  For line-
-#'   transects, this is ESW at the site.  For points, this is EDR. } 
-#'   \item{pDetection}{Average probability of detection at the site. 
-#'   If only site-level covariates appear in the distance function, 
-#'   pDetection is constant within a site. When detection-level 
-#'   covariates are present, pDetection is the average at the site.}
-#'   \item{observedCount}{The total number of individuals detected at a site.}
-#'   \item{abundance}{Estimated abundance at the site. This is the sum
-#'   of inflated group sizes at the site. i.e., each group size 
-#'   at the site is divided by its pDetection, and then summed.    }
-#'   \item{density}{Estimated density at the site. This is abundance 
-#'   at the site divided by the sampled area at the site.  E.g., for 
-#'   line transects, this is abundance divided by \eqn{2*w*length}. For 
-#'   points, this is abundance divided by \eqn{pi*w^2}.}
-#'   \item{effArea}{The effective area sampled at the site. This could be used
-#'   as an offset in a subsequent linear model. For 
-#'   line transects, this is \eqn{2*ESW*length}. For 
-#'   points, this is \eqn{pi*EDR^2}.}
-#'   
-#'   
-#' @author Trent McDonald, WEST Inc.,  \email{tmcdonald@west-inc.com}\cr 
-#'   Aidan McDonald, WEST Inc.,  \email{aidan@mcdcentral.org}\cr 
-#'   Jason Carlisle, University of Wyoming and WEST Inc., 
-#'   \email{jcarlisle@west-inc.com}
+#'
 #'   
 #' @references Manly, B.F.J. (1997) \emph{Randomization, bootstrap, and 
-#'   monte-carlo methods in biology}, London: Chapman and Hall.
+#'   Monte-Carlo methods in biology}, London: Chapman and Hall.
 #'   
 #'   Buckland, S.T., D.R. Anderson, K.P. Burnham, J.L. Laake, D.L. Borchers,
 #'    and L. Thomas. (2001) \emph{Introduction to distance sampling: estimating
@@ -163,19 +237,23 @@
 #' data(sparrowSiteData)
 #' 
 #' # Fit half-normal detection function
-#' dfunc <- dfuncEstim(formula=dist~1,
-#'                     detectionData=sparrowDetectionData,
-#'                     likelihood="halfnorm", w.hi=100, pointSurvey=FALSE)
+#' dfunc <- dfuncEstim(formula=dist ~ groupsize(groupsize)
+#'                     , detectionData=sparrowDetectionData
+#'                     , likelihood="halfnorm"
+#'                     , w.hi=units::set_units(100, "m")
+#'                     )
 #' 
 #' # Estimate abundance given a detection function
-#' # Note, area=10000 converts to density per hectare (for distances measured in meters)
-#' # Note, a person should do more than R=20 iterations
-#' fit <- abundEstim(dfunc, detectionData=sparrowDetectionData,
-#'                   siteData=sparrowSiteData, area=10000, R=20, ci=0.95,
-#'                   plot.bs=TRUE, bySite=FALSE)
+#' # No variance on density or abundance estimated here 
+#' # due to time constraints.  Set ci=0.95 (or another value)
+#' # to estimate bootstrap variances on ESW, density, and abundance.
 #' 
-#' # Print results
-#' fit
+#' fit <- abundEstim(dfunc
+#'                 , detectionData = sparrowDetectionData
+#'                 , siteData = sparrowSiteData
+#'                 , area = units::set_units(4105, "km^2")
+#'                 , ci = NULL
+#'                 )
 #'          
 #' @keywords model
 #' @export
@@ -183,36 +261,87 @@
 #' @importFrom graphics lines par
 #' @importFrom utils txtProgressBar setTxtProgressBar
 
-abundEstim <- function(dfunc, detectionData, siteData,
-                          area=1, ci=0.95, R=500, 
-                          plot.bs=FALSE, bySite=FALSE,
-                          showProgress=TRUE){
+abundEstim <- function(dfunc
+                     , detectionData
+                     , siteData
+                     , area=NULL
+                     , singleSided = FALSE
+                     , ci=0.95
+                     , R=500
+                     , lengthColumn = "length"
+                     , plot.bs=FALSE
+                     , showProgress=TRUE
+                     , control = RdistanceControls()
+                     ){
+
+  # A note on 'bysite' ----
+  # I left vestages of the 'bysite' code in this function because I may want 
+  # to re-include bysite capabilities in a future release.  For now, can't do
+  # bysite = TRUE.
+  bySite=FALSE
   
-  # Stop and print error if key columns of detectionData or siteData are missing or contain NAs
-  if(!("dist" %in% names(detectionData))) stop("There is no column named 'dist' in your detectionData.")
-  if(!("siteID" %in% names(detectionData))) stop("There is no column named 'siteID' in your detectionData.")
-  if(!("groupsize" %in% names(detectionData))) stop("There is no column named 'groupsize' in your detectionData.")
+  # Check for transectID columns (specified in dfuncEstim) ----
+  siteID.cols <- dfunc$siteID.cols
+  if(!all(siteID.cols %in% names(detectionData))) {
+    mess <- paste0("Transect ID column(s) '"
+                   , paste( siteID.cols[!(siteID.cols %in% names(detectionData))], collapse = ", ")
+                   , "' not found in data frame "
+                   , deparse(substitute(detectionData))
+                   )
+    stop(mess)
+  }
   
-  if(!("siteID" %in% names(siteData))) stop("There is no column named 'siteID' in your siteData.")
+  if(!all(siteID.cols %in% names(siteData))) {
+    mess <- paste0("Transect ID column(s) '"
+                   , paste( siteID.cols[!(siteID.cols %in% names(siteData))], collapse = ", ")
+                   , "' not found in data frame "
+                   , deparse(substitute(siteData))
+    )
+    stop(mess)
+  }
+  
+  # It is okay to have NA in distance column
+
+  # Check for NA in transect id columns of detectionData
+  if(any(is.na(detectionData[, siteID.cols]))){
+    stop(paste0("Please remove NA rows from transect ID column(s) "
+              , paste(siteID.cols, collapse = ", ")
+              , " in data frame "
+              , deparse(substitute(detectionData))
+              , "."))
+  }
+  
+  # Check for NA in transect id columns of siteData
+  if(any(is.na(siteData[, siteID.cols]))){
+    stop(paste0("Please remove NA rows from transect ID column(s) "
+                , paste(siteID.cols, collapse = ", ")
+                , " in data frame "
+                , deparse(substitute(siteData))
+                , "."))
+  }
+
+  # Check for presence of length column and NA's ----
   if(!dfunc$pointSurvey){
-    if(!("length" %in% names(siteData))) stop("There is no column named 'length' in your siteData.") 
+    if(!(lengthColumn %in% names(siteData))){
+      stop(paste0("Transect length column, '"
+                  , lengthColumn
+                  , "', is not present in data frame "
+                  , deparse(substitute(siteData))
+                  , ". Did you forget to specify 'lengthColumn'?"
+                  )) 
+    }
   }
   
-  if(any(is.na(detectionData$dist))) stop("Please remove rows for which detectionData$dist is NA.")
-  if(any(is.na(detectionData$siteID))) stop("Please remove rows for which detectionData$siteID is NA.")
-  if(any(is.na(detectionData$groupsize))) stop("Please remove rows for which detectionData$groupsize is NA.")
-  
-  if(any(is.na(siteData$siteID))) stop("Please remove NA's from siteData$siteID.")
-  if(!dfunc$pointSurvey){
-    if(any(is.na(siteData$length))) stop("Please remove NA's from siteData$length.") 
+  # Check if siteIDs are unique
+  if((d <- anyDuplicated(siteData[, siteID.cols])) > 0){
+    stop(paste0("Site IDs must be unique in data frame "
+              , deparse(substitute(siteData))
+              , ". Values on row "
+              , d
+              , " are duplicated somewhere."))
   }
   
-  # Stop and print error if siteIDs are not unique
-  if(anyDuplicated(siteData$siteID) > 0){
-    stop("Site IDs must be unique.")
-  }
-  
-  
+  # ---- Check CI - bySite combination ----
   # (jdc) this function isn't setup to generate bootstrap CIs of site-level abundance
   # (jdc) so allowing bySite=TRUE and !is.null(ci) is misleading, and throws an error
   # (jdc) in the bias-correction stage because ans$n.hat has the wrong dimensions
@@ -225,79 +354,11 @@ abundEstim <- function(dfunc, detectionData, siteData,
   }
   
   
-  # =============================================
-  # Plotting 
-  f.plot.bs <- function(x,plot.axes=FALSE,  ...) {
-    x.seq <- seq(x$w.lo, x$w.hi, length = 200)
-    g.at.x0 <- x$g.x.scl
-    x0 <- x$x.scl
-
-    if( x$like.form == "smu"){
-      y <- smu.like(x$parameters, x.seq - x$w.lo, x$w.hi, 
-                    scale = FALSE, pointSurvey = FALSE)
-      f.at.x0 <- smu.like(x$parameters, x0 - x$w.lo, x$w.hi, 
-                          scale = FALSE, pointSurvey = FALSE)
-    } else {
-      if(!is.null(x$covars)){
-        covMeanMat <-  colMeans(x$covars)
-        covMeanMat <- matrix(covMeanMat, 1) # this has the intercept
-  
-        BETA <- stats::coef(x)
-        p <- ncol(x$covars)
-        beta <- BETA[1:p]   # could be extra parameters tacked on. e.g., knee for uniform
-        params <- covMeanMat %*% beta
-        params <- exp(params)  # All link functions are exp...thus far
-        if(p<length(BETA)){
-          extraParams <- matrix(BETA[(p+1):length(BETA)], nrow(covMeanMat), length(BETA)-p, byrow=TRUE)
-          params <- cbind(params, extraParams)
-        }
-        #params <- predict.dfunc(x, newdata=covMeans, type="parameters")
-      } else {
-        params <- matrix(x$parameters,1)
-      }
-      
-      y <- apply(params, 1, like, dist= x.seq - x$w.lo, 
-                 series=x$series, covars = NULL, 
-                 expansions=x$expansions, 
-                 w.lo = x$w.lo, w.hi=x$w.hi, 
-                 pointSurvey = FALSE )  
-      y <- t(y)  # now, each row of y is a dfunc
-  
-      f.at.x0 <- apply(params, 1, like, dist= x0 - x$w.lo, 
-                       series=x$series, covars = NULL, 
-                       expansions=x$expansions, 
-                       w.lo=x$w.lo, w.hi=x$w.hi, 
-                       pointSurvey = FALSE )
-    }
-    
-    scaler <- g.at.x0 / f.at.x0 # a length n vector 
-    
-    y <- y * scaler  # length(scalar) == nrow(y), so this works right
-    
-    y <- t(y)
-    
-    if( x$pointSurvey ){
-      y <- y * (x.seq - x$w.lo)
-    }
-    
-    if(plot.axes){
-      yMax <- max(y*1.2)
-      plot(1,1,type="n",ylim=c(0,yMax), xlim=range(x.seq), xlab="",ylab="",bty="n")
-      title( xlab="Distance", ylab="Observation density" )
-    } 
-    lines(x.seq, y , ...)
-    
-  }
-  # =============================================
   
   if (plot.bs) {
     like <- match.fun(paste(dfunc$like.form, ".like", sep = ""))
-    par(xpd=TRUE)
-    if( dfunc$pointSurvey ){
-      f.plot.bs(dfunc,plot.axes=TRUE, col="red", lwd=3)
-    } else {
-      plot(dfunc) 
-    }
+    par( xpd=TRUE )
+    plotObj <- plot(dfunc)
   }
   
 
@@ -309,17 +370,49 @@ abundEstim <- function(dfunc, detectionData, siteData,
   if (bySite) {
     
     # Estimate abundance
-    abund <- estimateN(dfunc=dfunc, detectionData=detectionData, 
-                       siteData=siteData, area=area, bySite=bySite)
-    
-    ans <- abund
+    # THIS SHOULD CALL THE NEW PREDICT METHOD
+    # abund <- estimateN(dfunc=dfunc, detectionData=detectionData, 
+    #                    siteData=siteData, area=area, bySite=bySite)
+    # 
+    # ans <- abund
     
   } else {
     # Overall abundance, possibly with bootstrap
     
-    # Estimate abundance
-    abund <- estimateN(dfunc=dfunc, detectionData=detectionData, 
-                       siteData=siteData, area=area, bySite=bySite)
+    # ---- Make new composite siteID, and name it 'siteID' for convenience in bootstrap ----
+    # Next version, use tidyr::unite() here
+    siteID <- as.character(detectionData[, siteID.cols[1] ])
+    if( length(siteID.cols) > 1){
+      for(j in 2:length(siteID.cols) ){
+        siteID <- paste(siteID, detectionData[, siteID.cols[j] ], sep = "_")
+      }
+    }
+    detectionData$siteID <- siteID
+    
+    siteID <- as.character(siteData[, siteID.cols[1] ])
+    if( length(siteID.cols) > 1){
+      for(j in 2:length(siteID.cols) ){
+        siteID <- paste(siteID, siteData[, siteID.cols[j] ], sep = "_")
+      }
+    }
+    siteData$siteID <- siteID
+    
+    # ---- Set number of sides ----
+    surveyedSides <- as.numeric(!singleSided) + 1  # 2 = dbl sided; 1 = single
+    
+    # ---- Merge detections and sites, make sure to preserve sites without detections ----
+    # Sites without detections get assigned distance = NA, which is okay. dfuncEstim takes 
+    # missing distances (i.e., it drops them)
+    
+    mergeData <- merge(detectionData, siteData, by="siteID", all.y = TRUE)
+    
+    abund <- estimateN(dfunc = dfunc
+                      , data = mergeData
+                      , area = area
+                      , surveyedSides = surveyedSides
+                      , lengthColumn = lengthColumn
+                      , control = control
+                      )
     
     # store output returned by this function
     # (will be added to in later sections)
@@ -328,29 +421,35 @@ abundEstim <- function(dfunc, detectionData, siteData,
     # but the print.abund and print.dfunc were not working
     # when I just stored ans <- abund.  This is clunky, but resolves the issue.
     ans <- dfunc
+    ans$density <- abund$density
     ans$n.hat <- abund$abundance
     ans$n <- abund$n.groups
+    ans$n.seen <- abund$n.seen
     ans$area <- abund$area
-    ans$tran.len <- abund$tran.len
+    ans$surveyedUnits <- abund$surveyedUnits
     ans$avg.group.size <- abund$avg.group.size
+    ans$rng.group.size <- abund$range.group.size
     # Note: could call effectiveDistance(dfunc) here, but that does the 
     # integration over and is slightly less efficient
     if(dfunc$pointSurvey){
-      ans$esw <- sqrt(abund$w^2 * abund$pDetection)  # for points
+      ans$effDistance <- sqrt(abund$w^2 * abund$pDetection)  # for points
     } else {
-      ans$esw <- abund$pDetection * abund$w  # for lines
+      ans$effDistance <- abund$pDetection * abund$w  # for lines
     }
-    
-    
-    
-    
     
     if (!is.null(ci)) {
       # Compute bootstrap CI by resampling transects
       
       g.x.scl.orig <- dfunc$call.g.x.scl  # g(0) or g(x) estimate
       
-      n.hat.bs <- rep(NA, R)  # preallocate space for bootstrap replicates of nhat
+      B <- rep(NA, R)  # preallocate space for bootstrap replicates of nhat
+      coefCols <- 1:length(coef(dfunc))
+      coefB <- data.frame(matrix(B, nrow=R, ncol=max(coefCols)))
+      names(coefB) <- names(coef(dfunc))
+      B <- data.frame(
+               coefB
+             , density = B
+             , effDistance = B)
       
       # now including utils as import,
       if(showProgress){
@@ -359,40 +458,42 @@ abundEstim <- function(dfunc, detectionData, siteData,
       }
 
       # Bootstrap
+      lastConvergentDfunc <- dfunc
+      convergedCount <- 0
+      nTransects <- nrow(siteData)
       for (i in 1:R) {
         # sample rows, with replacement, from transect data
-        new.siteData <- siteData[sample(nrow(siteData), nrow(siteData), replace=TRUE),,drop=FALSE]
+        new.siteData <- siteData[sample(nTransects, nTransects, replace=TRUE),,drop=FALSE]
         
         new.trans <- as.character(new.siteData$siteID)  # which transects were sampled?
         trans.freq <- data.frame(table(new.trans))  # how many times was each represented in the new sample?
         
         # subset distance data from these transects
-        if ( class(new.siteData$siteID) == "factor" ) {
+        if ( inherits(new.siteData$siteID, "factor") ) {
+          # this never happens because we convert siteID to character before bootstrap loop
           new.trans <- unique(droplevels(new.siteData$siteID))
         } else {
           new.trans <- unique(new.siteData$siteID)
         }
         new.detectionData <- detectionData[detectionData$siteID %in% new.trans, ]  # this is incomplete, since some transects were represented > once
         
-        # new.mergeData <- merge(new.detectionData, siteData, by="siteID")
-        
-        # replicate according to freqency in new sample
-        # merge to add Freq column to indicate how many times to repeat each row
-        red <- merge(new.detectionData, trans.freq, by.x="siteID", by.y="new.trans")
-        # expand this reduced set my replicating rows
-        new.detectionData <- red[rep(seq.int(1, nrow(red)), red$Freq), -ncol(red)]
+        # It is possible that we detected no targets on these BS transects. 
+        # Fine, but we need to check cause the rep statement below throws an error 
+        # if there are no detections
+        if(nrow(new.detectionData) > 0) {
+          # If we have detections on this iteration, replicate according 
+          # to frequency of transects in new BS sample
+          # First, merge to add Freq column to indicate how many times to repeat each row
+          red <- merge(new.detectionData, trans.freq, by.x = "siteID", by.y = "new.trans")
+          # expand this reduced set by replicating rows
+          new.detectionData <- red[rep(seq.int(1, nrow(red)), red$Freq), -ncol(red)]
+        }
         
         # And merge on site-level covariates
         # Not needed if no covars, but cost in time should be negligible
-        # Need to merge now to get covars siteData that has unduplicated siteID.
-        new.mergeData <- merge(new.detectionData, siteData, by="siteID")
-        # unique(droplevels(new.detectionData$siteID))
-        # unique(droplevels(new.siteData$siteID))
-        # length(new.trans)
-        
-        # Extract distances
-        # new.x <- new.detectionData$dist
-        
+        # Need to merge now to get covars in siteData that has unduplicated siteID.
+        new.mergeData <- merge(new.detectionData, siteData, by="siteID", all.y = TRUE)
+
         #update g(0) or g(x) estimate.
         if (is.data.frame(g.x.scl.orig)) {
           g.x.scl.bs <- g.x.scl.orig[sample(1:nrow(g.x.scl.orig), 
@@ -402,11 +503,9 @@ abundEstim <- function(dfunc, detectionData, siteData,
         }
         
         
-        # Re-fit detection function -- same function, new data
-        # fmla <- as.formula(dfunc$call[["formula"]])  # (jdc) when called from autoDistSamp, dfunc$call[["formula"]] is "formula"
-        
-        # Eventually, get smoothed function into dfuncEstim or one function
-        # this if statement is kluncky
+        # Eventually, we will get smoothed the function into 
+        # dfuncEstim or one function.
+        # This if statement is kluncky
         if( dfunc$like.form == "smu" ){
           dfunc.bs <- dfuncSmu(dfunc$formula, 
                                detectionData=new.mergeData,
@@ -420,8 +519,6 @@ abundEstim <- function(dfunc, detectionData, siteData,
                                observer = dfunc$call.observer,
                                pointSurvey = dfunc$pointSurvey, 
                                warn = FALSE )
-          
-          
         } else {
           dfunc.bs <- dfuncEstim(formula = dfunc$formula,  
                                detectionData = new.mergeData,
@@ -434,30 +531,43 @@ abundEstim <- function(dfunc, detectionData, siteData,
                                g.x.scl = g.x.scl.bs,
                                observer = dfunc$call.observer,
                                pointSurvey = dfunc$pointSurvey, 
+                               outputUnits = dfunc$outputUnits,
                                warn = FALSE)
         }
         
         # Store ESW if it converged
-        if (dfunc$like.form == "smu" || dfunc.bs$convergence == 0) {
-          
+        if(dfunc$like.form == "smu" || dfunc.bs$convergence == 0) {
+          convergedCount <- convergedCount + 1
+
           # Note: there are duplicate siteID's in newSiteData.  This is okay
           # because number of unique siteIDs is never computed in estimateN. 
           # Number of sites in estiamteN is nrow(newSiteData)
           
-          # Estimate abundance
-          # (jdc) this function isn't setup to generate bootstrap CIs of site-level abundance, so this is always bySite=FALSE
-          # (jdc) so bySite=TRUE and !is.null(ci) is perhaps misleading
-          abund.bs <- estimateN(dfunc=dfunc.bs,
-                                detectionData=new.detectionData,
-                                siteData=new.siteData, area=area, 
-                                bySite=FALSE)
+          # Estimate Bootstrap abundance
+          abund.bs <- estimateN(dfunc = dfunc.bs
+                             , data = new.mergeData
+                             , area = area
+                             , surveyedSides = surveyedSides
+                             , lengthColumn = lengthColumn
+                             , control = control
+          )
           
-          n.hat.bs[i] <- abund.bs$abundance
+          if(dfunc$pointSurvey){
+            efd <- abund.bs$w * sqrt(abund.bs$pDetection)  # for points
+          } else {
+            efd <- abund.bs$w * abund.bs$pDetection # for lines
+          }
           
-          
+          B[i,coefCols] <- coef(dfunc.bs)
+          B$effDistance[i] <- mean(efd, na.rm = TRUE)
+          B$density[i] <- abund.bs$density
+
           if (plot.bs ) {
-            # (jdc) - this is plotting the prob of detection, doesn't match scaling of dfunc plot for points
-            f.plot.bs(dfunc.bs, col = "blue", lwd = 0.5)  
+            lines(dfunc.bs
+                , newdata = plotObj$predCovValues
+                , col = "blue"
+                , lwd = 0.5
+                )  
           }
           
           
@@ -477,26 +587,48 @@ abundEstim <- function(dfunc, detectionData, siteData,
       
       # plot red line of original fit again (over bs lines)
       if (plot.bs) {
-        f.plot.bs(dfunc, col = "red", lwd = 3)
+        lines(dfunc
+              , newdata = plotObj$predCovValues
+              , col = "red"
+              , lwd = 3)
       } 
+
+      # Density units do not get assigned to B. Assign them now      
+      B$density <- units::set_units(B$density, units(ans$density), mode = "standard")
+      B$effDistance <- units::set_units(B$effDistance, units(ans$effDistance), mode = "standard")
       
+      # function to calculate CI from bootstrap replicates using bias-corrected bootstrap method in Manly text
+      bcCI <- function(x.bs, x, ci){
+        p <- mean(x.bs > x, na.rm = TRUE)
+        z.0 <- qnorm(1 - p)
+        z.alpha <- qnorm(1 - ((1 - ci)/2))
+        p.L <- pnorm(2 * z.0 - z.alpha)
+        p.H <- pnorm(2 * z.0 + z.alpha)
+        ans <- quantile(x.bs[!is.na(x.bs)], p = c(p.L, p.H))
+        names(ans) <- paste0(100*c( (1 - ci)/2, 1 - (1-ci)/2 ), "%")
+        ans
+      }
       
-      # Calculate CI from bootstrap replicates using bias-corrected bootstrap method in Manly text
-      p <- mean(n.hat.bs > ans$n.hat, na.rm = TRUE)
-      z.0 <- qnorm(1 - p)
-      z.alpha <- qnorm(1 - ((1 - ci)/2))
-      p.L <- pnorm(2 * z.0 - z.alpha)
-      p.H <- pnorm(2 * z.0 + z.alpha)
-      ans$ci <- quantile(n.hat.bs[!is.na(n.hat.bs)], p = c(p.L, p.H))
-      ans$B <- n.hat.bs
-      if (!(dfunc$like.form=="smu") && any(is.na(n.hat.bs)) && showProgress){
-        cat(paste(sum(is.na(n.hat.bs)), "of", R, "iterations did not converge.\n"))
+      # abundance estimates are unitless, counts
+      abundEsts <- units::drop_units(B$density * ans$area)
+
+      ans$n.hat.ci <- bcCI(abundEsts, ans$n.hat, ci)
+      ans$density.ci <- bcCI(B$density, ans$density, ci)
+      ans$effDistance.ci <- bcCI(B$effDistance, mean(ans$effDistance, na.rm = TRUE), ci)
+      ans$B <- B
+      ans$nItersConverged <- convergedCount
+      
+      if (!(dfunc$like.form=="smu") && (convergedCount < R) && showProgress){
+        cat(paste( R - convergedCount, "of", R, "iterations did not converge.\n"))
       }
       
     } else {
       # Don't compute CI if ci is null
-      ans$B <- NA
-      ans$ci <- c(NA, NA)
+      ans$B <- NULL
+      ans$density.ci <- NULL
+      ans$n.hat.ci <- NULL
+      ans$effDistance.ci <- NULL
+      ans$nItersConverged <- NULL
     }  # end else
     
     

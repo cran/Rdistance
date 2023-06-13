@@ -23,7 +23,7 @@
 #' a vector with length equal to the number of rows in \code{newdata}. 
 #' If \code{newdata} is missing or NULL and covariates are present
 #' in \code{obj}, returned value is a vector with length equal to 
-#' the number of detections in \code{obj$dist}. In either of the 
+#' the number of detections in \code{obj$detections}. In either of the 
 #' above cases, elements in the returned vector are 
 #' the effective detection radii for the corresponding set of 
 #' covariates.  
@@ -31,9 +31,6 @@
 #' If \code{obj} does not contain covariates, \code{newdata} is ignored and 
 #' a scalar equal to the (constant) effective detection radius for all 
 #' detections is returned.  
-#'   
-#' @author Aidan McDonald, WEST Inc., \email{aidan@mcdcentral.org}\cr Trent
-#'   McDonald, WEST Inc., \email{tmcdonald@west-inc.com}
 #'   
 #' @seealso \code{\link{dfuncEstim}}, \code{\link{ESW}}, 
 #' \code{\link{effectiveDistance}}
@@ -43,9 +40,11 @@
 #' data(thrasherDetectionData)
 #' 
 #' # Fit half-normal detection function
-#' dfunc <- dfuncEstim(formula=dist~1,
-#'                     detectionData=thrasherDetectionData,
-#'                     likelihood="halfnorm", w.hi=175, pointSurvey=TRUE)
+#' dfunc <- dfuncEstim(formula=dist~1
+#'                   , detectionData=thrasherDetectionData
+#'                   , likelihood="halfnorm"
+#'                   , w.hi=units::set_units(175, "m")
+#'                   , pointSurvey=TRUE)
 #' 
 #' # Compute effective detection radius (EDR)
 #' EDR(dfunc)
@@ -94,36 +93,55 @@ EDR <- function(obj, newdata){
 
     # seqy <- seqx * density( dist = seqx, scale = FALSE, w.lo = w.lo, w.hi = w.hi, a = a, expansions = expansions, ...)
     
+    zero <- units::set_units(x = 0
+                             , value = obj$outputUnits
+                             , mode = "standard")
+
     x <- x - obj$w.lo
-    y <- x * apply(params, 1, like, dist= x, 
-               series=obj$series, covars = NULL, 
-               expansions=obj$expansions, 
-               w.lo = 0, w.hi=obj$w.hi-obj$w.lo, 
-               pointSurvey = obj$pointSurvey, 
-               scale=FALSE)    
+    y <- x * apply(X = params
+                 , MARGIN = 1
+                 , FUN = like
+                 , dist = x
+                 , series = obj$series
+                 , covars = NULL
+                 , expansions = obj$expansions
+                 , w.lo = zero
+                 , w.hi = obj$w.hi - obj$w.lo
+                 , pointSurvey = obj$pointSurvey
+                 , scale=FALSE)    
     y <- t(y)
 
     # Trapazoid rule.  
-    dx <- x[3]-x[2]
+    dx <- units::drop_units(x[3]-x[2])
     y1 <- y[,-1,drop=FALSE]
     y  <- y[,-ncol(y),drop=FALSE]
     rho <- dx*rowSums(y + y1)/2
     rho <- sqrt(2*rho)
-  
+    rho <- units::set_units(rho, obj$outputUnits, mode = "standard")
+    
   } else {
     # this returns (Integral xg(x)dx)/dist
-    integral <- integration.constant(dist=obj$dist,
-                                     density=like,
-                                     a=obj$parameters, 
-                                     covars = obj$covars,
-                                     w.lo=obj$w.lo, 
-                                     w.hi=obj$w.hi, 
-                                     expansions = obj$expansions,
-                                     pointSurvey = obj$pointSurvey,
-                                     series = obj$series)
-    # obj$dist is in denominator of integration.constant for point surveys. 
+    # integral is nrow(obj$detections) long vector
+    integral <- integration.constant(dist = obj$detections$dist
+                                   , density = like
+                                   , a = obj$parameters
+                                   , covars = obj$covars
+                                   , w.lo = obj$w.lo
+                                   , w.hi = obj$w.hi
+                                   , expansions = obj$expansions
+                                   , pointSurvey = obj$pointSurvey
+                                   , series = obj$series
+                                   )
+    # obj$detections$dist is in denominator of integration.constant for point surveys. 
     # multiply here to remove it. vector inside root should be constant.
-    rho <- sqrt(2*integral*obj$dist)[1]
+    rho <- sqrt(2 * integral * units::drop_units(obj$detections$dist))[1]
+    
+    # multiplying by obj$detections$dist in above line was a trick because we called 
+    # integration.constant (because computations are complicated). But what about units? 
+    # rho should have same units as obj$detections$dist, but one cannot take root of vectors with units. 
+    # So, add back the units. 
+    rho <- units::set_units(rho, obj$outputUnits, mode = "standard")
+  
   }
   
   rho

@@ -4,9 +4,17 @@
 \alias{halfnorm.like}
 \title{Half-normal likelihood function for distance analyses}
 \usage{
-halfnorm.like(a, dist, covars = NULL, w.lo = 0, w.hi = max(dist),
-  series = "cosine", expansions = 0, scale = TRUE,
-  pointSurvey = FALSE)
+halfnorm.like(
+  a,
+  dist,
+  covars = NULL,
+  w.lo = units::set_units(0, "m"),
+  w.hi = max(dist),
+  series = "cosine",
+  expansions = 0,
+  scale = TRUE,
+  pointSurvey = FALSE
+)
 }
 \arguments{
 \item{a}{A vector of likelihood parameter values. Length and 
@@ -69,7 +77,8 @@ than \code{w.lo} or greater than \code{w.hi} is \code{NA},
 hence \code{na.rm=TRUE} in the sum. 
 If \code{scale} = TRUE, the integral of the likelihood from
  \code{w.lo} to \code{w.hi} is 1.0. If \code{scale} = FALSE, 
- the integral of the likelihood is something else.
+ the integral of the likelihood is something else. 
+Values are always greater than or equal to zero.
 }
 \description{
 This function computes the likelihood contributions for 
@@ -112,7 +121,7 @@ dfunc <- dfuncEstim(x~1, likelihood="halfnorm")
 plot(dfunc)
 
 # evaluate the log Likelihood
-L <- halfnorm.like(dfunc$parameters, dfunc$dist, covars=dfunc$covars, 
+L <- halfnorm.like(dfunc$parameters, dfunc$detections$dist, covars=dfunc$covars, 
     w.lo=dfunc$w.lo, w.hi=dfunc$w.hi, 
     series=dfunc$series, expansions=dfunc$expansions, 
     scale=TRUE)
@@ -125,9 +134,5 @@ L <- halfnorm.like(dfunc$parameters, dfunc$dist, covars=dfunc$covars,
          \code{\link{uniform.like}},
          \code{\link{negexp.like}},
          \code{\link{Gamma.like}}
-}
-\author{
-Trent McDonald, WEST, Inc. \email{tmcdonald@west-inc.com}
-        Aidan McDonald, WEST, Inc. \email{aidan@mcdcentral.org}
 }
 \keyword{models}

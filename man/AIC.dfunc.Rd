@@ -26,7 +26,7 @@ Computes AICc, AIC, or BIC for estimated distance functions.
 }
 \details{
 Regular Akaike's information criterion 
-  (\url{http://en.wikipedia.org/wiki/Akaike_information_criterion}) (\eqn{AIC}) is 
+  (\url{https://en.wikipedia.org/wiki/Akaike_information_criterion}) (\eqn{AIC}) is 
   \deqn{AIC = LL + 2p,}{AIC = (LL) + 2p,}
   where \eqn{LL} is the maximized value of the log likelihood 
   (the minimized value of the negative log 
@@ -46,13 +46,10 @@ Regular Akaike's information criterion
   \deqn{BIC = LL + log(n)p,}{BIC = (LL) + log(n)p}.
 }
 \examples{
-# Load the example dataset of sparrow detections from package
   data(sparrowDetectionData)
-  
-  # Fit detection function to perpendicular, off-transect distances
   dfunc <- dfuncEstim(dist~1,
                       detectionData=sparrowDetectionData, 
-                      w.hi=150)
+                      w.hi=units::set_units(150, "m"))
   
   # Compute fit statistics
   AIC(dfunc)  # AICc
@@ -71,8 +68,5 @@ Burnham, K. P., and D. R. Anderson, 2002.
 }
 \seealso{
 \code{\link{coef}}, \code{\link{dfuncEstim}}
-}
-\author{
-Trent McDonald, WEST Inc.,  \email{tmcdonald@west-inc.com}
 }
 \keyword{model}

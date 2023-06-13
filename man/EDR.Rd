@@ -25,7 +25,7 @@ covariates are present in \code{obj}, returned value is
 a vector with length equal to the number of rows in \code{newdata}. 
 If \code{newdata} is missing or NULL and covariates are present
 in \code{obj}, returned value is a vector with length equal to 
-the number of detections in \code{obj$dist}. In either of the 
+the number of detections in \code{obj$detections}. In either of the 
 above cases, elements in the returned vector are 
 the effective detection radii for the corresponding set of 
 covariates.  
@@ -47,9 +47,11 @@ The point-transect equivalent to Effective Strip Width (ESW).
 data(thrasherDetectionData)
 
 # Fit half-normal detection function
-dfunc <- dfuncEstim(formula=dist~1,
-                    detectionData=thrasherDetectionData,
-                    likelihood="halfnorm", w.hi=175, pointSurvey=TRUE)
+dfunc <- dfuncEstim(formula=dist~1
+                  , detectionData=thrasherDetectionData
+                  , likelihood="halfnorm"
+                  , w.hi=units::set_units(175, "m")
+                  , pointSurvey=TRUE)
 
 # Compute effective detection radius (EDR)
 EDR(dfunc)
@@ -64,9 +66,5 @@ effectiveDistance(dfunc)
 \seealso{
 \code{\link{dfuncEstim}}, \code{\link{ESW}}, 
 \code{\link{effectiveDistance}}
-}
-\author{
-Aidan McDonald, WEST Inc., \email{aidan@mcdcentral.org}\cr Trent
-  McDonald, WEST Inc., \email{tmcdonald@west-inc.com}
 }
 \keyword{modeling}

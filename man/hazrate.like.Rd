@@ -2,11 +2,19 @@
 % Please edit documentation in R/hazrate.like.R
 \name{hazrate.like}
 \alias{hazrate.like}
-\title{Hazard rate likelihood function for distance analyses}
+\title{hazrate.like - Hazard rate likelihood}
 \usage{
-hazrate.like(a, dist, covars = NULL, w.lo = 0, w.hi = max(dist),
-  series = "cosine", expansions = 0, scale = TRUE,
-  pointSurvey = FALSE)
+hazrate.like(
+  a,
+  dist,
+  covars = NULL,
+  w.lo = units::set_units(0, "m"),
+  w.hi = max(dist),
+  series = "cosine",
+  expansions = 0,
+  scale = TRUE,
+  pointSurvey = FALSE
+)
 }
 \arguments{
 \item{a}{A vector of likelihood parameter values. Length and meaning 
@@ -78,20 +86,24 @@ functions, the full log likelihood of all the data is
   arbitrary.
 }
 \description{
-This function computes likelihood contributions for 
-off-transect sighting distances, scaled appropriately, for use as 
-a distance likelihood.
+Computes the hazard rate likelihood of  
+off-transect distances, given parameters. Primarily used as 
+a minimization objective during distance function estimation.
 }
 \details{
 The hazard rate likelihood is 
-\deqn{f(x|a,b) = 1 - \exp(-(x/\sigma)^{-\beta})}{%
-f(x|a,b) = 1 - exp(-(x/Sigma)^(-Beta))} 
-where \eqn{\sigma}{Sigma} is a variance parameter, 
-and \eqn{\beta}{Beta}
-  is a slope parameter to be estimated. 
+\deqn{f(x|\sigma,k) = 1 - \exp(-(x/\sigma)^{-k})}{%
+f(x|Sigma,k) = 1 - exp(-(x/Sigma)^(-k))} 
+where \eqn{\sigma}{Sigma} determines location 
+(i.e., distance at which the function equals 1 - exp(-1) = 0.632), 
+and \eqn{k}{k} determines slope of the function 
+at \eqn{\sigma}{Sigma} (i.e., larger k equals steeper 
+slope at \eqn{\sigma}{Sigma}). For distance analysis, 
+the valid range for both \eqn{\sigma}{Sigma} and k is
+\eqn{\geq 0}{>=0}.  
   
-  \bold{Expansion Terms}: If \code{expansions} = k 
-  (k > 0), the expansion function specified by 
+  \bold{Expansion Terms}: If \code{expansions} = e 
+  (e > 0), the expansion function specified by 
   \code{series} is called (see for example
   \code{\link{cosine.expansion}}). Assuming 
   \eqn{h_{ij}(x)}{h_ij(x)} is the \eqn{j^{th}}{j-th} 
@@ -99,10 +111,10 @@ and \eqn{\beta}{Beta}
   \eqn{c_1, c_2, \dots, c_k}{c(1), c(2), ..., c(k)} are 
   (estimated) coefficients for the expansion terms, the 
   likelihood contribution for the \eqn{i^{th}}{i-th} 
-  distance is, \deqn{f(x|a,b,c_1,c_2,\dots,c_k) = f(x|a,b)(1 + 
-  \sum_{j=1}^{k} c_j h_{ij}(x)).}{%
-  f(x|a,b,c_1,c_2,...,c_k) = f(x|a,b)(1 + c(1) h_i1(x) + 
-  c(2) h_i2(x) + ... + c(k) h_ik(x)). }
+  distance is, \deqn{f(x|a,b,c_1,c_2,\dots,c_e) = f(x|a,b)(1 + 
+  \sum_{j=1}^{e} c_j h_{ij}(x)).}{%
+  f(x|a,b,c_1,c_2,...,c_e) = f(x|a,b)(1 + c(1) h_i1(x) + 
+  c(2) h_i2(x) + ... + c(e) h_ik(x)). }
 }
 \examples{
 \dontrun{
@@ -124,9 +136,5 @@ plot(x, hazrate.like(c(50, 2), x), type="l", col="blue")
          \code{\link{uniform.like}},
          \code{\link{negexp.like}},
          \code{\link{Gamma.like}}
-}
-\author{
-Trent McDonald, WEST, Inc. \email{tmcdonald@west-inc.com}\cr
-        Aidan McDonald, WEST, Inc. \email{aidan@mcdcentral.org}
 }
 \keyword{models}

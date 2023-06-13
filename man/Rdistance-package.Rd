@@ -7,44 +7,8 @@
 \alias{Rdistance}
 \alias{point-transect}
 \alias{line-transect}
-\title{Rdistance - Distance Sampling Analyses for Abundance Estimation
-
-
-\code{Rdistance} contains functions and associated routines to analyze
-distance-sampling data collected on point or line transects. 
-Some of \code{Rdistance}'s features include:
-\itemize{
-   \item Accommodation of both point and line transect analyses 
-    in one routine (\code{\link{dfuncEstim}}).
-   \item Regression-like formula for inclusion of covariate in 
-   distance functions (\code{\link{dfuncEstim}}).
-   \item Automatic bootstrap confidence intervals 
-   (\code{\link{abundEstim}}).
-   \item Availability of both study-area and site-level abundance
-   estimates (\code{\link{abundEstim}}).
-   \item Classical, parametric distance functions
-   (\code{\link{halfnorm.like}}, \code{\link{hazrate.like}}), and
-   expansion functions (\code{\link{cosine.expansion}}, 
-   \code{\link{hermite.expansion}}, \code{\link{simple.expansion}}).
-   
-   \item Non-classic distance functions (\code{\link{Gamma.like}}, 
-   \code{\link{negexp.like}}, \code{\link{uniform.like}}) 
-   and a non-parametric smoother 
-   \code{\link{dfuncSmu}}).
-   
-   \item User defined distance functions. 
-    
-   \item Automated distance function fits and selection 
-   \code{\link{autoDistSamp}}.
-   \item Extended vignettes.
-   \item \code{print}, \code{plot}, \code{predict}, \code{coef}, 
-   and \code{summary} 
-   methods for distance function objects and abundance classes.
-}}
+\title{Rdistance - Distance Sampling Analyses for Abundance Estimation}
 \description{
-Rdistance - Distance Sampling Analyses for Abundance Estimation
-
-
 \code{Rdistance} contains functions and associated routines to analyze
 distance-sampling data collected on point or line transects. 
 Some of \code{Rdistance}'s features include:
@@ -135,6 +99,28 @@ requests, etc. through the package's GitHub website
 (\url{https://github.com/tmcd82070/Rdistance}).
 }
 
+\section{Data sets}{
+
+ \code{Rdistance} contains four example data sets: two collected using 
+line-transect methods (i.e., \code{\link{sparrowDetectionData}} and
+\code{\link{sparrowSiteData}}) and two collected using point-transect
+(sometimes called a point count) methods (i.e.,
+\code{\link{thrasherDetectionData}} and \code{\link{thrasherSiteData}}).
+
+These datasets demonstrate the type and format of input data required by
+\code{Rdistance} to estimate a detection function and abundance from
+distance sampling data collected by surveying line transects or point
+transects.  They also allow the user to step through the tutorials described
+in the package vignettes.  
+
+\code{Rdistance} requires only  detection data to fit 
+detection functions, assuming  no covariates in the detection function
+(see \code{\link{dfuncEstim}}).  Both detection and
+site data are required to estimate abundance or to include
+site-level covariates in the detection function (see
+\code{\link{abundEstim}}).
+}
+
 \section{Resources}{
 
 The best place to start learning about \code{Rdistance}
@@ -150,12 +136,12 @@ A list of routines can be obtained by loading \code{Rdistance} and issuing
 
 \author{
 Main author and maintainer: Trent McDonald
-<tmcdonald@west-inc.com>
+<trent@mcdonalddatasciences.com>
 
 Coauthors: Ryan Nielson, Jason Carlisle, and Aidan McDonald
 
 Contributors: Ben Augustine, James Griswald, Joel Reynolds, Pham Quang, Earl
 Becker, Aaron Christ, Brook Russelland, Patrick McKann, Lacey Jeroue, 
-Abigail Hoffman, and Michael Kleinsasser.
+Abigail Hoffman, Michael Kleinsasser, and Ried Olson
 }
 \keyword{package}

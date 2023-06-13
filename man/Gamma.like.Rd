@@ -2,11 +2,19 @@
 % Please edit documentation in R/Gamma.like.R
 \name{Gamma.like}
 \alias{Gamma.like}
-\title{Gamma distance function for distance analyses}
+\title{Gamma.like - Gamma distance function}
 \usage{
-Gamma.like(a, dist, covars = NULL, w.lo = 0, w.hi = max(dist),
-  series = "cosine", expansions = 0, scale = TRUE,
-  pointSurvey = FALSE)
+Gamma.like(
+  a,
+  dist,
+  covars = NULL,
+  w.lo = units::set_units(0, "m"),
+  w.hi = max(dist),
+  series = "cosine",
+  expansions = 0,
+  scale = TRUE,
+  pointSurvey = FALSE
+)
 }
 \arguments{
 \item{a}{A vector of likelihood parameter values. Length and meaning depend on \code{series} and \code{expansions}. If no expansion terms were called for
@@ -46,7 +54,9 @@ A numeric vector the same length and order as \code{dist} containing the likelih
   the integral of the likelihood from \code{w.lo} to \code{w.hi} is 1.0. If \code{scale} = FALSE, the integral of the likelihood is an arbitrary constant.
 }
 \description{
-Computes the gamma likelihood, scaled appropriately, for use as a likelihood in estimating a distance function.
+Computes the gamma likelihood, 
+scaled appropriately, for use as a likelihood 
+in estimating a distance function.
 }
 \details{
 This function utilizes the built-in R function \code{dgamma} to evaluate the gamma density function.  Using the parameterization of \code{dgamma}, 
@@ -82,9 +92,5 @@ Becker, E. F., and P. X. Quang, 2009. \emph{A Gamma-Shaped Detection Function fo
 }
 \seealso{
 \code{\link{dfuncEstim}}, \code{\link{halfnorm.like}}, \code{\link{hazrate.like}}, \code{\link{uniform.like}}, \code{\link{negexp.like}}
-}
-\author{
-Trent McDonald, WEST, Inc. \email{tmcdonald@west-inc.com}
-        Aidan McDonald, WEST, Inc. \email{aidan@mcdcentral.org}
 }
 \keyword{models}
