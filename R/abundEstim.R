@@ -1,10 +1,10 @@
 #' @title Estimate abundance from distance-sampling data
-#'   
+#'
 #' @description Estimate abundance (or density) given an estimated detection
 #'   function and supplemental information on observed group sizes, transect
 #'   lengths, area surveyed, etc.  Also computes confidence intervals on
 #'   abundance (or density) using a the bias corrected bootstrap method.
-#'   
+#'
 #' @param dfunc An estimated 'dfunc' object produced by \code{dfuncEstim}.
 #' 
 #' @inheritParams dfuncEstim 
@@ -25,9 +25,9 @@
 #' Units of "km^2", "cm^2", "ha", "m^2", "acre", "mi^2", and many
 #' others are acceptable.  
 #'   
-#' @param singleSided Logical scaler. If only one side of the transect was 
-#' observed, set \code{singleSided} = TRUE. If both sides of line-transects were 
-#' observed, \code{singleSided} = FALSE. Some surveys
+#' @param singleSided Logical scalar. If only one side of the transect was 
+#' observed, set \code{singleSided} = TRUE. If both sides of line-transects 
+#' were observed, \code{singleSided} = FALSE. Some surveys
 #' observe only one side of transect lines for a variety of logistical reasons. 
 #' For example, some aerial line-transect surveys place observers on only one
 #' side of the aircraft. This parameter effects only line-transects.  When 
@@ -62,8 +62,8 @@
 #'    \deqn{N =\frac{n(A)}{2(ESW)(L)}}{%
 #'          N = n*A / (2*ESW*L)} 
 #'    where \emph{n} is total number of sighted individuals 
-#'   (i.e., \code{sum(dfunc$detections$groupSizes)}), \emph{L} is the total length of 
-#'   surveyed transect (i.e., \code{sum(siteData[,lengthColumn])}),
+#'   (i.e., \code{sum(dfunc$detections$groupSizes)}), \emph{L} is the total 
+#'   length of surveyed transect (i.e., \code{sum(siteData[,lengthColumn])}),
 #'   and \emph{ESW} is effective strip width
 #'   computed from the estimated distance function (i.e., \code{ESW(dfunc)}).
 #'   If only one side of transects were observed, the "2" in the denominator 
@@ -111,7 +111,7 @@
 #'   of distances on the iteration which pushes parameters to their 
 #'   bounds. When an iteration fails to produce a valid 
 #'   distance function, \code{Rdistance} 
-#'   simply skips the intration, effectively ignoring these 
+#'   simply skips the iteration, effectively ignoring these 
 #'   non-convergent iterations. 
 #'   If the proportion of non-convergent iterations is small 
 #'   (less than 20% by default), the resulting confidence interval 
@@ -142,7 +142,7 @@
 #'   
 #'   \bold{Point transects}: Point transects do not have length. The "length" of point transects
 #'   is the number of points on the transect. \code{Rdistance} treats individual points as independent 
-#'   and bootstrap resampmles them to estimate variance. To include distance obervations
+#'   and bootstrap resamples them to estimate variance. To include distance observations
 #'   from some points but not the number of targets seen, include a separate "length" column 
 #'   in the site data frame with NA for the "extra" points. Like NA length line transects, 
 #'   NA "length" point transects are dropped from the count of points and group sizes on these 
@@ -320,7 +320,7 @@ abundEstim <- function(dfunc
                 , "."))
   }
 
-  # Check for presence of length column and NA's ----
+  # Check for presence of length column ----
   if(!dfunc$pointSurvey){
     if(!(lengthColumn %in% names(siteData))){
       stop(paste0("Transect length column, '"
@@ -381,18 +381,19 @@ abundEstim <- function(dfunc
     
     # ---- Make new composite siteID, and name it 'siteID' for convenience in bootstrap ----
     # Next version, use tidyr::unite() here
-    siteID <- as.character(detectionData[, siteID.cols[1] ])
+    # Here, we convert to data.frames in case detectionData is a tibble. i.e. this method only works for true data.frames
+    siteID <- as.character(data.frame(detectionData)[, siteID.cols[1] ])
     if( length(siteID.cols) > 1){
       for(j in 2:length(siteID.cols) ){
-        siteID <- paste(siteID, detectionData[, siteID.cols[j] ], sep = "_")
+        siteID <- paste(siteID, data.frame(detectionData)[, siteID.cols[j] ], sep = "_")
       }
     }
     detectionData$siteID <- siteID
     
-    siteID <- as.character(siteData[, siteID.cols[1] ])
+    siteID <- as.character(data.frame(siteData)[, siteID.cols[1] ])
     if( length(siteID.cols) > 1){
       for(j in 2:length(siteID.cols) ){
-        siteID <- paste(siteID, siteData[, siteID.cols[j] ], sep = "_")
+        siteID <- paste(siteID, data.frame(siteData)[, siteID.cols[j] ], sep = "_")
       }
     }
     siteData$siteID <- siteID
@@ -456,6 +457,20 @@ abundEstim <- function(dfunc
         pb <- txtProgressBar(1, R, style=3)
         cat("Computing bootstrap confidence interval on N...\n")
       }
+      
+      # Deal with factors in the model
+      factorsInModel <- attr(terms(dfunc$model.frame), "factors")
+      if( !is.null(factorsInModel) && length(factorsInModel)>0 ){
+        factorNames <- dimnames(factorsInModel)[[2]]
+        factorLevels <- vector("list", length(factorNames))
+        names(factorLevels) <- factorNames
+        for(j in 1:length(factorNames)){
+          factorLevels[[j]] <- unique(dfunc$model.frame[, factorNames])
+        }
+      } else {
+        factorNames <- NULL
+      }
+      
 
       # Bootstrap
       lastConvergentDfunc <- dfunc
@@ -492,8 +507,24 @@ abundEstim <- function(dfunc
         # And merge on site-level covariates
         # Not needed if no covars, but cost in time should be negligible
         # Need to merge now to get covars in siteData that has unduplicated siteID.
-        new.mergeData <- merge(new.detectionData, siteData, by="siteID", all.y = TRUE)
+        new.mergeData <- merge(new.detectionData, siteData, by="siteID", all.x = TRUE)
 
+        # If factor in the model and we get only fewer than all levels, 
+        # the model "fails to converge".  Toss it. 
+        if(!is.null(factorNames)){
+          bsFactLevsOK <- rep(TRUE, length(factorLevels))
+          for( j in 1:length(factorLevels)){
+            bsFactorLevels <- unique(new.mergeData[, names(factorLevels)[j]])
+            bsFactLevsOK[j] <- length(bsFactorLevels) == length(factorLevels[[j]])
+          }
+          if( any(!bsFactLevsOK) ){
+            # rather than simply 'next' here, set new.mergedata to NULL
+            # so that progress bar updates at bottom of loop
+            # next
+            new.mergeData <- data.frame(NULL)
+          }
+        }
+        
         #update g(0) or g(x) estimate.
         if (is.data.frame(g.x.scl.orig)) {
           g.x.scl.bs <- g.x.scl.orig[sample(1:nrow(g.x.scl.orig), 
@@ -519,7 +550,7 @@ abundEstim <- function(dfunc
                                observer = dfunc$call.observer,
                                pointSurvey = dfunc$pointSurvey, 
                                warn = FALSE )
-        } else {
+        } else if(nrow(new.mergeData) > 0){
           dfunc.bs <- dfuncEstim(formula = dfunc$formula,  
                                detectionData = new.mergeData,
                                likelihood = dfunc$like.form, 
@@ -533,6 +564,8 @@ abundEstim <- function(dfunc
                                pointSurvey = dfunc$pointSurvey, 
                                outputUnits = dfunc$outputUnits,
                                warn = FALSE)
+        } else {
+          dfunc.bs <- list(convergence = 1)
         }
         
         # Store ESW if it converged

@@ -173,6 +173,18 @@ F.start.limits <- function( like
     }
     
   } else if( like == "negexp" ){
+    if(is.na(medDist)){
+      cat("\n")
+      cat("dist:\n")
+      print(dist)
+      cat("w.lo, w.hi:\n")
+      print(c(w.lo, w.hi))
+      cat("dMin,dMax,medDist:\n")
+      print(c(dMin, dMax, medDist))
+    }
+    if(medDist <= dMin){
+      medDist <- w*0.05
+    }
     if( ncovars > 1 ){
       start <- c(zero
                , rep(zero, np - 1))

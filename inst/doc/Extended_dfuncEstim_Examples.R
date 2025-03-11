@@ -26,8 +26,8 @@ dfuncObs <- dfuncEstim(formula = dist ~ observer
                      , siteData = sparrowSiteData
                      , w.hi = units::set_units(100, "m")
                      , control=RdistanceControls(maxIter=1000))
-dfunc
-plot(dfunc, col="grey")
+dfuncObs
+plot(dfuncObs, col="grey")
 
 ## -----------------------------------------------------------------------------
 dfuncObs <- dfuncEstim(formula = dist ~ observer + groupsize(groupsize)
@@ -35,8 +35,8 @@ dfuncObs <- dfuncEstim(formula = dist ~ observer + groupsize(groupsize)
                      , detectionData = sparrowDetectionData
                      , siteData = sparrowSiteData
                      , w.hi = units::set_units(100, "m"))
-dfunc
-plot(dfunc, col="grey")
+dfuncObs
+plot(dfuncObs, col="grey")
 
 ## -----------------------------------------------------------------------------
 dfunc <- dfuncEstim(formula = dist ~ observer + groupsize(groupsize)

@@ -153,7 +153,7 @@
 #' the defaults, and the requirements for this list. 
 #' See examples below for how to change controls.
 #' 
-#' @param outputUnits A string giving the symbolic measurment 
+#' @param outputUnits A string giving the symbolic measurement 
 #' units that results should be reported in.   Any 
 #' distance measurement unit in \code{units::valid_udunits()} 
 #' will work.  The strings for common distance symbolic units are: 
@@ -207,12 +207,12 @@
 #'   
 #'       \item \bold{Detection data only required:}\cr
 #'          \code{detectionData} only is required when 
-#'          covariates are are not included in the distance function (i.e., the right-hand side of 
+#'          covariates are not included in the distance function (i.e., the right-hand side of 
 #'          \code{formula} is "~1" or "~groupsize(groupSize)"). Note that \code{dfuncEstim}
 #'          does not need to know transect IDs (or group sizes)  
 #'          in order to estimate a distance function; but, group sizes and 
-#'          transect IDs are stored and used to estimate abundance 
-#'          in function \code{abundEstim}. Both the \code{detectionData} and 
+#'          transect IDs are stored and used for later use 
+#'          in \code{abundEstim}. Both the \code{detectionData} and 
 #'          \code{siteData} data frames are required in \code{abundEstim}. 
 #'   
 #'       \item \bold{Neither detection data nor site data required}\cr
@@ -222,7 +222,7 @@
 #'          environment) and abundance estimates are not required. 
 #'          Regular R scoping rules apply when the call 
 #'          to \code{dfuncEstim} is embedded in a function. 
-#'          This case is will produce distance functions only.
+#'          This case will produce distance functions only.
 #'          Abundance cannot later be estimated because transects and transect lengths cannot
 #'          be specified outside of a data frame.  If abundance will be estimated, 
 #'          use either case 1 or 2.  
@@ -552,7 +552,7 @@ dfuncEstim <- function (formula
     respName <- as.character(attr(mt, "variables"))[attr(mt, "response") + 1]
     stop(paste("Distance measurement units are required.", 
                "Assign units by attaching 'units' package then:\n", 
-               paste0("units(",dfName,"$", respName, ")"), "<- '<units of measurment>',\n", 
+               paste0("units(",dfName,"$", respName, ")"), "<- '<units of measurement>',\n", 
                "for example 'm' (meters) or 'ft' (feet). See units::valid_udunits()"))
   } else if( control$requireUnits ){
     # if we are here, dist has units

@@ -1,6 +1,22 @@
----
-title: "Rdistance NEWS"
----
+Changes in version 3.1.3 (2025-03-11)
+==============
+Version 3.1.3 contains three patches.  Several updates to 
+documentation and one bug fix precipitated
+by changes to the 'units' package. 
+
+Changes in version 3.1.0 (2023-08-28)
+==============
+Version 3.1.0 primarily addresses [GitHub issues](https://github.com/tmcd82070/Rdistance/issues).
+
+* ***Summary Methods Implemented***: Issue [#57](https://github.com/tmcd82070/Rdistance/issues/57).  Rdistance did not implement `summary` methods for dfunc and abund objects prior to version v3.1.0. This version implements both `summary` and `print` methods for the main outputs.  `print.dfunc` and `print.abund` are modeled on print methods for lm and glm objects.  New methods `summary.dfunc` and `summary.abund` are modeled on the summary methods for lm and glm and will produce fuller (relative to print) outputs. 
+* Documentation fixes:
+  + Added reference to general method in DESCRIPTION as suggested by CRAN editors.
+  + Updated and clarified Description field of DESCRIPTION file.
+  + Updated numerous links in README and NEWS.
+* Bug Fixes:
+  + Fixed bug when `abundEstim` was called with tibbles. 
+
+
 
 Changes in version 3.0.0 (2023-06-12)
 ==============
@@ -63,7 +79,7 @@ Changes in version 2.1.4 (2019-06-11)
 Changes in version 2.1.3 (2019-01-02)
 ==============
 * Fixed scaling error in the Gamma likelihood causing mode to be less than 1.0
-* Fixed inverted plots that occurred when w.lo > 0 (left-truncatation)
+* Fixed inverted plots that occurred when w.lo > 0 (left-truncation)
 * Fixed bug in 'autoDistSamp' when 'bySite=TRUE'
 * Fixed bug causing bootstrap failure of point transect surveys when 'siteData' contained only one column
 

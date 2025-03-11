@@ -129,7 +129,7 @@
 #'   The additional components are:
 #'   \item{barHeights}{A vector containing the scaled bar heights drawn 
 #'   on the plot.}
-#'   \item{barWidths}{A vector or scaler of the bar widths drawn on 
+#'   \item{barWidths}{A vector or scalar of the bar widths drawn on 
 #'   the plot, with measurement units.  }
 #'   Re-plot the bars with \code{barplot( return$barHeights, 
 #'   width = return$barWidths )}.
@@ -373,9 +373,9 @@ plot.dfunc <- function( x,
       }
     }
     bar.mids <- barplot( ybarhgts, 
-                         width = xscl, 
+                         width = units::set_units(xscl,NULL), 
                          ylim = y.lims, 
-                         xlim = x.limits,
+                         xlim = units::set_units(x.limits,NULL),
                          space = 0, 
                          density = density,
                          angle = angle,
@@ -518,7 +518,7 @@ plot.dfunc <- function( x,
   
   # Clean up ----
   # x$yscl <- scaler   # this is g(x) / f(x) = ESW if lines. One for each row in newdata.  Might want this later.
-  x$barHeights <- ybarhgts  # scaled to mean scaler.
+  x$barHeights <- ybarhgts  # scaled to mean scalar.
   x$barWidths <- xscl
   x$predCovValues <- newdata
   

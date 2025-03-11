@@ -1,4 +1,4 @@
-## ---- output='hide'-----------------------------------------------------------
+## ----output='hide'------------------------------------------------------------
 require(Rdistance)
 
 ## ----setup--------------------------------------------------------------------
@@ -101,7 +101,7 @@ dfuncSparrow <- dfuncEstim(formula = dist~1
                           , w.hi = rightTruncDistance
                           , outputUnits = "km")
 
-## ---- include=FALSE-----------------------------------------------------------
+## ----include=FALSE------------------------------------------------------------
 fit <- abundEstim(dfuncSparrow
                 , detectionData = sparrowDetectionData
                 , siteData = sparrowSiteData
