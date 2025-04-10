@@ -1,9 +1,25 @@
-Changes in version 4.0.2 (2025-03-28)
+Changes in version 4.0.5 (2025-04-10)
 ==============
-Version numbers >4.0.0 are substantial different from prior versions. 
+Bug fixes:
 
-* ***BIGGEST CHANGE***: Input data frames are now nested.  That is, 
-input data frames are now a nested tibble with one row per transect, 
+*   Fixed bug in `predict` method when `type = "density"` causing NaN 
+estimates on transects with observations outside the strip.
+*   Fixed bug in `RdistDf` when merge parameter `by` was named.  When `by`
+was named, and hence we merge on different variables, the names and values 
+in `by` were reversed because we nest first then merge. Bug did not 
+affect merges on same-named variables. 
+*   *Non-bug* change: Moved all the examples from README to tutorials 
+on the [McDonald Data Science website](https://mcdonalddatasciences.com/Rdistance.html) 
+because we have more control, 
+they are indexed by date and keyword, and they look better.
+
+
+Changes in version 4.0.3 (2025-03-28)
+==============
+Version numbers >4.0.0 are substantially different from prior versions. 
+
+* ***BIGGEST CHANGE***: Input data frames are now nested tibbles with one 
+row per transect, 
 and detection information in a data frame contained within a list column. 
 Technically, the new data frame format is a grouped tibble with one row 
 per group, and each group is a transect. 

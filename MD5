@@ -1,10 +1,10 @@
-1620f87fac432c208190178b1380ee7b *DESCRIPTION
+51a91589c07ea7d6e196af0121da56da *DESCRIPTION
 0d2b917f47014cf0faa49df954b7b3c2 *NAMESPACE
-0c619cebbfe9ac0917d6bcfea997aedf *NEWS.md
+dfb48b8002e23b18438884bb9178b9f2 *NEWS.md
 d7b626865d6f42c3a91a050a08432441 *R/AIC.dfunc.R
 35da2ae8cd319e76bb45fb7a53e830cb *R/EDR.R
 8fce1b3d39fd549d5da67ad8d2647abd *R/ESW.r
-42b8f29f61463d259cab4d8d3d243fc8 *R/RdistDf.R
+ad02897eb2799c3247b6ee015c298baf *R/RdistDf.R
 e8675faf4164b74a1b684375ede8d8bb *R/Rdistance-package.R
 aeb6366649e6b3445668345557a4ba70 *R/RdistanceControls.R
 473fc7b1dfc8d58069d12622dccbbe32 *R/abundEstim.R
@@ -52,7 +52,7 @@ fcd596aaef53f37ae262f81a47e7134b *R/oneBsIter.R
 38a410df6ac7a376419127ba817037fd *R/perpDists.R
 4b59cce89b0dea56752a3d06b5d1fa2b *R/plot.dfunc.para.R
 c6029888069a1c3f4ded97107c3b0d74 *R/plot.dfunc.r
-21bec4a791ceb71da93ee73248a34225 *R/predDensity.R
+e01a69659f073786a837f7054b51d792 *R/predDensity.R
 2a712f74fc705bd1becfadcffe520631 *R/predDfuncs.R
 1ce93d53316034be5d58c16f37675fd1 *R/predLikelihood.R
 8ea682c300c8e908f245f484485b4b47 *R/predict.dfunc.R
@@ -85,7 +85,7 @@ a01811616936bd04d73adc4023f4af42 *data/thrasherSiteData.rda
 c6a392b58592e7ca10511d582139e0f9 *man/AIC.dfunc.Rd
 8f96b1312bc65926a6f575917ec07b40 *man/EDR.Rd
 72916c8a9c8a7675667c0acbbd4a8dcb *man/ESW.Rd
-eccffdacec8153e8b3bb567ebb966ab5 *man/RdistDf.Rd
+7b107547ec008055cfe8a7feb7035768 *man/RdistDf.Rd
 6de814dcd03a70b742fce5332b4a1545 *man/Rdistance-package.Rd
 362f8d991e635b1022b99bd307cd5929 *man/RdistanceControls.Rd
 dcc7144e8e57a94b1ddfa88f4bfa719f *man/abundEstim.Rd

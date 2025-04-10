@@ -1,8 +1,8 @@
 Package: Rdistance
 Type: Package
 Title: Density and Abundance from Distance-Sampling Surveys
-Version: 4.0.3
-Date: 2025-03-28
+Version: 4.0.5
+Date: 2025-04-10
 Maintainer: Trent McDonald <trent@mcdonalddatasciences.com>
 Authors@R: c(person("Trent", "McDonald", role=c("cre","aut"), email="trent@mcdonalddatasciences.com"), 
   person("Jason", "Carlisle", role="aut", email="jason.carlisle@wyo.gov"), 
@@ -54,7 +54,7 @@ RoxygenNote: 7.3.2
 Encoding: UTF-8
 Config/testthat/edition: 3
 NeedsCompilation: no
-Packaged: 2025-03-29 18:20:31 UTC; trent
+Packaged: 2025-04-10 17:04:59 UTC; trent
 Author: Trent McDonald [cre, aut],
   Jason Carlisle [aut],
   Aidan McDonald [aut] (point transect methods),
@@ -74,4 +74,4 @@ Author: Trent McDonald [cre, aut],
   Will McDonald [ctb] (Automated tests),
   Reid Olson [ctb] (Automated tests and bug fixes)
 Repository: CRAN
-Date/Publication: 2025-03-29 18:30:02 UTC
+Date/Publication: 2025-04-10 17:20:02 UTC
