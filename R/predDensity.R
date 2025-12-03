@@ -1,4 +1,4 @@
-#' @title predDensity - Density on transects
+#' @title Density on transects
 #' 
 #' @description
 #' An internal prediction method for computing density 
@@ -46,7 +46,7 @@ predDensity <- function(object
   # missing distances.  So, we use unnest(object$data), which has 
   # all observations, and we filter to the right ones. 
   
-  mt <- terms(object$mf)
+  mt <- stats::terms(object$mf)
   distVar <- all.vars(mt)[attributes(mt)$response]
   groupSizeVar <- all.vars(mt)[attributes(mt)$offset]
   effVar <- attr(object$data, "effortColumn")
@@ -145,10 +145,10 @@ predDensity <- function(object
 
   # Internal function to remove units from unitless columns ----  
   drop1Units <- function(x){
-    unitless <- units::set_units(1,"1")
+    unitless <- setUnits(1,"1")
     if(inherits(x, "units")){
       if( units(x) == units(unitless) ){
-        x <- units::set_units(x, NULL)
+        x <- dropUnits(x)
       }
     }
     x

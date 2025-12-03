@@ -1,4 +1,4 @@
-#' @title hazrate.start.limits - Start and limit values for hazrate distance function
+#' @title Start and limit values for hazrate distance function
 #' 
 #' @description Compute starting values and limits for the hazard rate distance
 #' function. 
@@ -7,17 +7,14 @@
 #' 
 #' @inherit startLimits return
 #' 
-#' @importFrom stats median
-#' 
 #' @export
 hazrate.start.limits <- function (ml){
   
-  X <- model.matrix(ml)
+  X <- stats::model.matrix(ml)
   dist <- Rdistance::distances(ml)  
   
   ncovars <- ncol(X)
 
-  fuzz <- getOption("Rdistance_fuzz")
   zero <- getOption("Rdistance_zero")
   posInf <- getOption("Rdistance_posInf")
   negInf <- getOption("Rdistance_negInf")
@@ -33,10 +30,10 @@ hazrate.start.limits <- function (ml){
   
   # Only time dist will not have units is when user overrides requirement
   # Nonetheless, need to remove units b/c likelihood is unitless
-  dMin <- units::set_units(dMin, NULL)
-  dMax <- units::set_units(dMax, NULL)
-  w <- units::set_units(w, NULL)
-  medDist <- units::set_units(medDist, NULL)
+  dMin <- dropUnits(dMin)
+  dMax <- dropUnits(dMax)
+  w <- dropUnits(w)
+  medDist <- dropUnits(medDist)
   
   start <- c(log(0.8 * medDist)   # Sigma 
              , rep(zero, ncovars-1)    # any covars

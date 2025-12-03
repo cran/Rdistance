@@ -1,4 +1,4 @@
-#' @title groupSizes - Group Sizes
+#' @title Group Sizes
 #'
 #' @description 
 #' Extract the group size information from 
@@ -23,9 +23,7 @@
 #' groupSizes(sparrowModel)  
 #' 
 #' @export
-#' @importFrom stats model.offset
 #' 
 groupSizes <- function(ml, ...){
-  #ml$mf[, attr(terms(ml$mf), "offset")]
   stats::model.offset(ml$mf)
 }

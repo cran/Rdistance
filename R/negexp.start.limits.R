@@ -1,4 +1,4 @@
-#' @title negexp.start.limits - Start and limit values for negexp distance function
+#' @title Start and limit values for negexp distance function
 #' 
 #' @description Compute starting values and limits for the negative 
 #' exponential distance
@@ -9,10 +9,9 @@
 #' @inherit startLimits return
 #' 
 #' @export
-#' @importFrom stats median
 negexp.start.limits <- function (ml){
   
-  X <- model.matrix(ml)
+  X <- stats::model.matrix(ml)
   dist <- Rdistance::distances(ml)  
   
   ncovars <- nCovars(X)
@@ -26,7 +25,7 @@ negexp.start.limits <- function (ml){
   # there should not be any distances outside (w.lo,w.hi)
   d <- dist - ml$w.lo
   medDist <- stats::median(d)
-  medDist <- units::set_units(medDist, NULL)
+  medDist <- dropUnits(medDist)
   
   if(is.null(medDist) || 
      is.na(medDist) || 
@@ -34,7 +33,7 @@ negexp.start.limits <- function (ml){
      (medDist <= zero)){
     w <- ml$w.hi - ml$w.lo
     medDist <- ml$w.lo + w / 2
-    medDist <- units::set_units(medDist, NULL)
+    medDist <- dropUnits(medDist)
   } 
   
   startIntercept <- -log(medDist) # = log(1/medDist)

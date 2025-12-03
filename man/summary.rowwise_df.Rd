@@ -2,7 +2,7 @@
 % Please edit documentation in R/summary.rowwise_df.R
 \name{summary.rowwise_df}
 \alias{summary.rowwise_df}
-\title{summary.rowwise_df - Summary method for Rdistance data frames}
+\title{Summary method for Rdistance data frames}
 \usage{
 \method{summary}{rowwise_df}(object, formula = NULL, w.lo = 0, w.hi = NULL, ...)
 }
@@ -14,7 +14,9 @@
 is the name of the vector containing off-transect or radial detection distances.  
 The right-hand side contains the names of covariate 
 vectors to fit in the detection
-function, and potentially group sizes. 
+function, and potentially group sizes. Group sizes are specified 
+by including \code{+ groupsize(<variable>)} in the RHS 
+(see 'Group Sizes' section).
 Covariates can be either detection level 
 or transect level and can appear in  \code{data} or exist in the 
 global working environment. Regular R scoping 
@@ -22,20 +24,16 @@ rules apply.}
 
 \item{w.lo}{Lower or left-truncation limit of the distances in distance data. 
 This is the minimum possible off-transect distance. Default is 0.  If 
-\code{w.lo} is greater than 0, it must be assigned measurement units
-using \code{units(w.lo) <- "<units>"} or 
-\code{w.lo <- units::set_units(w.lo, "<units>")}. 
-See examples in the help for \code{set_units}.}
+\code{w.lo} is greater than 0, it must have measurement units. 
+See \code{help(unitHelpers)} for assistance assigning units.}
 
 \item{w.hi}{Upper or right-truncation limit of the distances 
 in \code{dist}. This is the maximum off-transect distance that 
 could be observed. If unspecified (i.e., NULL), 
 right-truncation is set to the maximum of the observed 
-distances.  If \code{w.hi} is specified, it must have associated 
-measurement units.  Assign measurement units
-using \code{units(w.hi) <- "<units>"} or 
-\code{w.hi <- units::set_units(w.hi, "<units>")}. 
-See examples in the help for \code{set_units}.}
+distances.  If \code{w.hi} is specified, it must have  
+measurement units.  
+See \code{help(unitHelpers)} for assistance assigning units.}
 
 \item{...}{Other arguments for summary methods.}
 }
@@ -60,7 +58,7 @@ data(thrasherDf)
 summary(thrasherDf)
 summary(thrasherDf
         , formula = dist ~ groupsize(groupsize)
-        , w.hi = units::set_units(100,"m")
+        , w.hi = setUnits(100,"m")
         )
 
 }

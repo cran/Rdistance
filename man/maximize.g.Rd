@@ -2,7 +2,7 @@
 % Please edit documentation in R/maximize.g.r
 \name{maximize.g}
 \alias{maximize.g}
-\title{maximize.g - Find coordinate of function maximum}
+\title{Find coordinate of function maximum}
 \usage{
 maximize.g(fit, covars = NULL)
 }
@@ -33,4 +33,3 @@ fit$x.scl            # same thing
 \seealso{
 \code{\link{dfuncEstim}}
 }
-\keyword{model}

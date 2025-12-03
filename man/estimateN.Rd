@@ -2,7 +2,7 @@
 % Please edit documentation in R/estimateN.r
 \name{estimateN}
 \alias{estimateN}
-\title{estimateN - Abundance point estimates}
+\title{Abundance point estimates}
 \usage{
 estimateN(object, area = NULL, propUnitSurveyed = 1)
 }

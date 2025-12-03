@@ -1,3 +1,39 @@
+Changes in version 4.1.0 (2025-11-29)
+==============
+
+*   **Functionality change**: Added `oneStep.like`, a mixture of non-overlapping
+uniform densities, as a distance function.  Included associated print, 
+plot, summary, and expansion methods. This required inclusion of a new non-gradient
+based optimizer. 
+*   **Functionality change**: Implemented reporting of bootstrap coefficient 
+standard errors, after bootstrap resampling is complete.  Prior to 
+bootstrapping, asymptotic se's are reported when known. 
+*   **Functionality change**: Included unit assignment helpers. Units can 
+now be assigned with the `%#%` operator (e.g., 3 %#% "m"), which makes unit
+assignment easier than in prior versions (which used `units::set_units`). 
+Fixed unit assignment operators are included for all popular linear and 
+squared units (e.g., 3 %m%. assigns meters to 3). See `help(unitHelpers)`.
+*   **Functionality change**: Included b-spline expansion factors for distance 
+functions. Expansion factors are now `cosine`, `hermite`, `simple`, 
+and `bspline`.
+*   **Functionality change**: Added verbocity option. This prints intermediate 
+parameter estimates and likelihoods during maximization. 
+Set `options(Rdistance_verbocity = 1)`
+or higher to see progressively more detailed intermediate output. 
+*   **Update**: Likelihood computation time was significantly 
+decreased relative to the prior version, greatly increasing speed of 
+maximizations. Now, all likelihoods for both lines and points that do not 
+contain expansions use exact integration, which is much quicker than 
+numerical integration.  Numeric integration is used only when expansion 
+terms are included. 
+*   **Update**: Substantial documentation updates and clarifications.
+*   **Bug Fixes**: 
+  .   Fixed bug in `plot.dfunc.para` when `w.lo` > 0
+  .   Fixed bug in point transect methods resulting in incorrect 
+  likelihood scalings
+  .   Fixed expansions `hermite` and `simple` that was causing 
+  non-convergence issues
+
 Changes in version 4.0.5 (2025-04-10)
 ==============
 Bug fixes:
@@ -5,8 +41,9 @@ Bug fixes:
 *   Fixed bug in `predict` method when `type = "density"` causing NaN 
 estimates on transects with observations outside the strip.
 *   Fixed bug in `RdistDf` when merge parameter `by` was named.  When `by`
-was named, and hence we merge on different variables, the names and values 
-in `by` were reversed because we nest first then merge. Bug did not 
+was named and merge was on different named variables, names and values 
+in `by` were reversed prior to the fix due to first nesting then merging. 
+This bug did not 
 affect merges on same-named variables. 
 *   *Non-bug* change: Moved all the examples from README to tutorials 
 on the [McDonald Data Science website](https://mcdonalddatasciences.com/Rdistance.html) 
@@ -16,7 +53,8 @@ they are indexed by date and keyword, and they look better.
 
 Changes in version 4.0.3 (2025-03-28)
 ==============
-Version numbers >4.0.0 are substantially different from prior versions. 
+Methods and workflow in Rdistance versions >4.0.0 are substantially 
+different from prior versions. 
 
 * ***BIGGEST CHANGE***: Input data frames are now nested tibbles with one 
 row per transect, 

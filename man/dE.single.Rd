@@ -2,20 +2,21 @@
 % Please edit documentation in R/dE.single.R
 \name{dE.single}
 \alias{dE.single}
-\title{dE.single - Estimate single-observer line-transect distance function}
+\title{Estimate single-observer line-transect distance function}
 \usage{
 dE.single(
   data,
   formula,
   likelihood = "halfnorm",
-  w.lo = units::set_units(0, "m"),
+  w.lo = setUnits(0, "m"),
   w.hi = NULL,
   expansions = 0,
   series = "cosine",
   x.scl = w.lo,
   g.x.scl = 1,
   warn = TRUE,
-  outputUnits = NULL
+  outputUnits = NULL,
+  asymptoticSE = TRUE
 )
 }
 \arguments{
@@ -34,7 +35,9 @@ are \code{RdistDf}'s.}
 is the name of the vector containing off-transect or radial detection distances.  
 The right-hand side contains the names of covariate 
 vectors to fit in the detection
-function, and potentially group sizes. 
+function, and potentially group sizes. Group sizes are specified 
+by including \code{+ groupsize(<variable>)} in the RHS 
+(see 'Group Sizes' section).
 Covariates can be either detection level 
 or transect level and can appear in  \code{data} or exist in the 
 global working environment. Regular R scoping 
@@ -45,20 +48,16 @@ likelihoods at present are "halfnorm", "hazrate", and "negexp".}
 
 \item{w.lo}{Lower or left-truncation limit of the distances in distance data. 
 This is the minimum possible off-transect distance. Default is 0.  If 
-\code{w.lo} is greater than 0, it must be assigned measurement units
-using \code{units(w.lo) <- "<units>"} or 
-\code{w.lo <- units::set_units(w.lo, "<units>")}. 
-See examples in the help for \code{set_units}.}
+\code{w.lo} is greater than 0, it must have measurement units. 
+See \code{help(unitHelpers)} for assistance assigning units.}
 
 \item{w.hi}{Upper or right-truncation limit of the distances 
 in \code{dist}. This is the maximum off-transect distance that 
 could be observed. If unspecified (i.e., NULL), 
 right-truncation is set to the maximum of the observed 
-distances.  If \code{w.hi} is specified, it must have associated 
-measurement units.  Assign measurement units
-using \code{units(w.hi) <- "<units>"} or 
-\code{w.hi <- units::set_units(w.hi, "<units>")}. 
-See examples in the help for \code{set_units}.}
+distances.  If \code{w.hi} is specified, it must have  
+measurement units.  
+See \code{help(unitHelpers)} for assistance assigning units.}
 
 \item{expansions}{A scalar specifying the number of terms 
 in \code{series} to compute. Depending on the series, 
@@ -77,9 +76,8 @@ present are 'simple', 'hermite', and 'cosine'.}
 detection function will be scaled.  \code{g.x.scl} can be a distance
 or the string "max".  
 When \code{x.scl} is specified (i.e., not 0 or "max"), it must have measurement 
-units assigned using either \code{library(units);units(x.scl) <- '<units>'}
-or \code{x.scl <- units::set_units(x.scl, <units>)}. See
-\code{units::valid_udunits()} for valid symbolic units.}
+units assigned. 
+See \code{help(unitHelpers)} for assistance assigning units.}
 
 \item{g.x.scl}{Height of the distance function at coordinate \code{x}. 
 The distance function 
@@ -112,6 +110,23 @@ nautical miles ("nm" is nano meters), "in" - inches,
 If \code{outputUnits} is unspecified (NULL),
 output units will be the same as those on 
 distances in \code{data}.}
+
+\item{asymptoticSE}{Logical variable for whether to calculate 
+asymptotic standard errors. The default (TRUE) estimates an
+asymptotic variance-covariance matrix for parameters based on the 
+likelihood's Hessian (2nd derivative). If maximization 
+has been performed by Nlminb or HookesJeeves, the asymptotic 
+Hessian is estimated using numeric second deriviatives 
+of the likelihood at the maximum likelihood solution. If 
+maximization was performed by Optim, the last Hessian of 
+the maximization is returned 
+by Optim and used
+(see \code{\link{varcovarEstim}} and \code{\link{secondDeriv}}). 
+Asymptotic standard errors will not be estimated if 
+\code{asymptoticSE = FALSE}. If not estimated, 
+bootstrap iterations will run faster because the numeric Hessian, 
+which is discarded during bootstrapping,
+will not be calculated every iteration.}
 }
 \value{
 An object of class 'dfunc'.  Objects of class 'dfunc' 
@@ -125,12 +140,14 @@ are lists containing the following components:
     two parameters). }
     
   \item{varcovar}{The variance-covariance matrix for coefficients 
-    of the distance function, estimated by the inverse of the fit's Hessian
-    evaluated at the estimates.  Rdistance estimates the 
-    Hessian as the second derivative of the log likelihood surface 
+    of the distance function, estimated by the inverse of the fit's Hessian.  
+    If maximization has been performed by Nlminb or HookesJeeves, Rdistance estimates the 
+    Hessian from the second derivative of the log likelihood surface 
     at the final estimates, where second derivatives are estimated by 
-    numeric differentiation (see \code{\link{secondDeriv}}.  There is no guarantee this 
-    matrix is positive-definite and should be viewed with caution.  
+    numeric differentiation (see \code{\link{secondDeriv}}. If Optim 
+    performed the maximization, Rdistance uses the Hessian returned 
+    by Optim.  The variance-covariance matrix is re-set to NULL 
+    if the Hessian is not positive-definite.  
     Error estimates derived from bootstrapping are generally 
     more reliable. I.e., re-compute coefficient confidence intervals 
     using the bootstrap values in component \code{$B} of an abundance object.}   
@@ -201,6 +218,12 @@ are lists containing the following components:
   
   \item{outputUnits}{The measurement units used for output.  All 
     distance measurements are converted to these units internally. }
+    
+  \item{asymptoticSE}{Logical indicating whether the variance-
+  covariance matrix in component \code{varcovar} is asymptotic (TRUE) (i.e., 
+  based on the Hessian of maximization) or bootstrap (FALSE) (i.e., 
+  estimated after bootstrap iterations). 
+  }
     
   \item{x.scl}{The \emph{actual} distance at which 
     the distance function is scaled to some value.  
@@ -290,10 +313,11 @@ in units of \code{outputUnits}. Valid conversions must exist between
 units or an error is thrown.  For example, meters cannot be converted
 into hectares.
   
-Measurement units can be assigned using  
-\code{units()<-} after attaching the \code{units} 
-package or with \code{x <- units::set_units(x, "<units>")}. 
-See \code{units::valid_udunits()}
+Measurement units can be assigned using one of Rdistance's 
+unit helper routines (see \code{help(unitHelpers)}), or from 
+routines in the \code{units} package (e.g., 
+\code{x <- units::set_units(x, "<units>")}). 
+See \code{units::}\code{\link[units]{valid_udunits}}
 for a list of valid symbolic units. 
 
 If measurements are truly unit-less, or measurement units are unknown, 
@@ -321,4 +345,3 @@ Buckland, S.T., D.R. Anderson, K.P. Burnham, J.L. Laake, D.L. Borchers,
 \code{\link{abundEstim}}, \code{\link{autoDistSamp}}.
 Likelihood-specific help files (e.g., \code{\link{halfnorm.like}}).
 }
-\keyword{model}

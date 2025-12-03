@@ -1,4 +1,4 @@
-#' @title dE.single - Estimate single-observer line-transect distance function
+#' @title Estimate single-observer line-transect distance function
 #' 
 #' @description Fits a detection function to off-transect 
 #' distances collected by a single observer. 
@@ -10,7 +10,9 @@
 #' is the name of the vector containing off-transect or radial detection distances.  
 #' The right-hand side contains the names of covariate 
 #' vectors to fit in the detection
-#' function, and potentially group sizes. 
+#' function, and potentially group sizes. Group sizes are specified 
+#' by including \code{+ groupsize(<variable>)} in the RHS 
+#' (see 'Group Sizes' section).
 #' Covariates can be either detection level 
 #' or transect level and can appear in  \code{data} or exist in the 
 #' global working environment. Regular R scoping 
@@ -22,20 +24,16 @@
 #' 
 #' @param w.lo Lower or left-truncation limit of the distances in distance data. 
 #' This is the minimum possible off-transect distance. Default is 0.  If 
-#' \code{w.lo} is greater than 0, it must be assigned measurement units
-#' using \code{units(w.lo) <- "<units>"} or 
-#' \code{w.lo <- units::set_units(w.lo, "<units>")}. 
-#' See examples in the help for \code{set_units}.
+#' \code{w.lo} is greater than 0, it must have measurement units. 
+#' See \code{help(unitHelpers)} for assistance assigning units.
 #'  
 #' @param w.hi Upper or right-truncation limit of the distances 
 #' in \code{dist}. This is the maximum off-transect distance that 
 #' could be observed. If unspecified (i.e., NULL), 
 #' right-truncation is set to the maximum of the observed 
-#' distances.  If \code{w.hi} is specified, it must have associated 
-#' measurement units.  Assign measurement units
-#' using \code{units(w.hi) <- "<units>"} or 
-#' \code{w.hi <- units::set_units(w.hi, "<units>")}. 
-#' See examples in the help for \code{set_units}. 
+#' distances.  If \code{w.hi} is specified, it must have  
+#' measurement units.  
+#' See \code{help(unitHelpers)} for assistance assigning units.
 #' 
 #' @param expansions A scalar specifying the number of terms 
 #' in \code{series} to compute. Depending on the series, 
@@ -54,9 +52,8 @@
 #'   detection function will be scaled.  \code{g.x.scl} can be a distance
 #'   or the string "max".  
 #'   When \code{x.scl} is specified (i.e., not 0 or "max"), it must have measurement 
-#'   units assigned using either \code{library(units);units(x.scl) <- '<units>'}
-#'   or \code{x.scl <- units::set_units(x.scl, <units>)}. See
-#'   \code{units::valid_udunits()} for valid symbolic units. 
+#'   units assigned. 
+#'   See \code{help(unitHelpers)} for assistance assigning units. 
 #'   
 #' @param g.x.scl Height of the distance function at coordinate \code{x}. 
 #'   The distance function 
@@ -89,6 +86,23 @@
 #' If \code{outputUnits} is unspecified (NULL),
 #' output units will be the same as those on 
 #' distances in \code{data}.  
+#' 
+#' @param asymptoticSE Logical variable for whether to calculate 
+#' asymptotic standard errors. The default (TRUE) estimates an
+#' asymptotic variance-covariance matrix for parameters based on the 
+#' likelihood's Hessian (2nd derivative). If maximization 
+#' has been performed by Nlminb or HookesJeeves, the asymptotic 
+#' Hessian is estimated using numeric second deriviatives 
+#' of the likelihood at the maximum likelihood solution. If 
+#' maximization was performed by Optim, the last Hessian of 
+#' the maximization is returned 
+#' by Optim and used
+#' (see \code{\link{varcovarEstim}} and \code{\link{secondDeriv}}). 
+#' Asymptotic standard errors will not be estimated if 
+#' \code{asymptoticSE = FALSE}. If not estimated, 
+#' bootstrap iterations will run faster because the numeric Hessian, 
+#' which is discarded during bootstrapping,
+#' will not be calculated every iteration.
 #'
 #'
 #' @section Group Sizes: 
@@ -149,10 +163,11 @@
 #' units or an error is thrown.  For example, meters cannot be converted
 #' into hectares.
 #'   
-#' Measurement units can be assigned using  
-#' \code{units()<-} after attaching the \code{units} 
-#' package or with \code{x <- units::set_units(x, "<units>")}. 
-#' See \code{units::valid_udunits()}
+#' Measurement units can be assigned using one of Rdistance's 
+#' unit helper routines (see \code{help(unitHelpers)}), or from 
+#' routines in the \code{units} package (e.g., 
+#' \code{x <- units::set_units(x, "<units>")}). 
+#' See \code{units::}\code{\link[units]{valid_udunits}}
 #' for a list of valid symbolic units. 
 #' 
 #' If measurements are truly unit-less, or measurement units are unknown, 
@@ -175,12 +190,14 @@
 #'     two parameters). }
 #'     
 #'   \item{varcovar}{The variance-covariance matrix for coefficients 
-#'     of the distance function, estimated by the inverse of the fit's Hessian
-#'     evaluated at the estimates.  Rdistance estimates the 
-#'     Hessian as the second derivative of the log likelihood surface 
+#'     of the distance function, estimated by the inverse of the fit's Hessian.  
+#'     If maximization has been performed by Nlminb or HookesJeeves, Rdistance estimates the 
+#'     Hessian from the second derivative of the log likelihood surface 
 #'     at the final estimates, where second derivatives are estimated by 
-#'     numeric differentiation (see \code{\link{secondDeriv}}.  There is no guarantee this 
-#'     matrix is positive-definite and should be viewed with caution.  
+#'     numeric differentiation (see \code{\link{secondDeriv}}. If Optim 
+#'     performed the maximization, Rdistance uses the Hessian returned 
+#'     by Optim.  The variance-covariance matrix is re-set to NULL 
+#'     if the Hessian is not positive-definite.  
 #'     Error estimates derived from bootstrapping are generally 
 #'     more reliable. I.e., re-compute coefficient confidence intervals 
 #'     using the bootstrap values in component \code{$B} of an abundance object.}   
@@ -252,6 +269,12 @@
 #'   \item{outputUnits}{The measurement units used for output.  All 
 #'     distance measurements are converted to these units internally. }
 #'     
+#'   \item{asymptoticSE}{Logical indicating whether the variance-
+#'   covariance matrix in component \code{varcovar} is asymptotic (TRUE) (i.e., 
+#'   based on the Hessian of maximization) or bootstrap (FALSE) (i.e., 
+#'   estimated after bootstrap iterations). 
+#'   }
+#'     
 #'   \item{x.scl}{The \emph{actual} distance at which 
 #'     the distance function is scaled to some value.  
 #'     i.e., this is the actual \emph{x} at 
@@ -283,30 +306,23 @@
 #' dfunc
 #' plot(dfunc)                   
 #'
-#' @keywords model
 #' @export
-dE.single <- function(   data
-                            , formula
-                            , likelihood = "halfnorm"
-                            , w.lo = units::set_units(0,"m")
-                            , w.hi = NULL
-                            , expansions = 0
-                            , series = "cosine"
-                            , x.scl = w.lo
-                            , g.x.scl = 1
-                            , warn = TRUE
-                            , outputUnits = NULL
+dE.single <- function( data
+                      , formula
+                      , likelihood = "halfnorm"
+                      , w.lo = setUnits(0,"m")
+                      , w.hi = NULL
+                      , expansions = 0
+                      , series = "cosine"
+                      , x.scl = w.lo
+                      , g.x.scl = 1
+                      , warn = TRUE
+                      , outputUnits = NULL
+                      , asymptoticSE = TRUE
  ){
 
-  # if ( likelihood == "uniform" ){
-  #   .Deprecated(new = "logistic.like"
-  #               , package = "Rdistance"
-  #               , msg = paste("'unform.like' is depricated. Use 'logistic'.\n"
-  #                             , "Switching to 'logistic' likelihood.")
-  #               , old = "uniform.like")
-  #   likelihood <- "logistic"
-  # }
-
+  verboseLevel <- getOption("Rdistance_verbosity")
+  
   # Parse the formula and make a model list ----
   # all parameters go into parseModel because they need to become
   # components for the output list, not just formula.
@@ -323,14 +339,52 @@ dE.single <- function(   data
                           , x.scl = x.scl
                           , g.x.scl = g.x.scl
                           , outputUnits = outputUnits
+                          , asymptoticSE = asymptoticSE
                         )
-  
   strt.lims <- Rdistance::startLimits(modelList)
+  
+  if(verboseLevel >= 2){
+    cat(colorize("Starting values ----\n", col="red"))
+    cat(colorize("   Start: "))
+    cat(paste(paste(names(strt.lims$start), "=", colorize(strt.lims$start)), collapse=", "), "\n")
+    cat(colorize("Lo Limit: "))
+    cat(paste(paste(names(strt.lims$low), "=", colorize(strt.lims$low)), collapse=", "), "\n")
+    cat(colorize("Hi Limit: "))
+    cat(paste(paste(names(strt.lims$high), "=", colorize(strt.lims$high)), collapse=", "), "\n")
+  }
 
+  # Check whether need to use non-gradient optimizer ----
+  if( !(modelList$likelihood %in% differentiableLikelihoods()) ){
+    # checkNEvalPts(getOption("Rdistance_intEvalPts")) # make sure coefs match, before save
+    origOp <- options(Rdistance_optimizer = "hookeJeeves")
+    nInts <- getOption("Rdistance_intEvalPts")
+    if(nInts < 301){
+      # bump up integral points
+      options(Rdistance_intEvalPts = 301)
+    }
+    checkNEvalPts(getOption("Rdistance_intEvalPts")) # make sure coefs match
+  } else {
+    # Check univariate and Hooke-Jeeves; can't do univariate problems ----
+    termLabs <- attr(stats::terms(modelList$formula), "term.labels")
+    termLabs <- termLabs[!grepl("groupsize\\(", termLabs)]
+    if( (length(termLabs) == 0) && 
+        (getOption("Rdistance_optimizer") == "hookeJeeves") &&
+        (modelList$likelihood != "hazrate") ){
+        stop(paste("Cannot estimate an intercept-only model using 'hookeJeeves'.",
+                   "Reset optimizer with options(Rdistance_optimizer = 'nlminb'), or restart R",
+                   "and re-attach Rdistance"))  
+    }
+  }
+  
   # Perform optimization
   fit <- mlEstimates( ml = modelList
                     , strt.lims = strt.lims
                     )
+  
+  # Put original optimizer back in options if needed ----
+  if( !(modelList$likelihood %in% differentiableLikelihoods()) ){
+    options(origOp)
+  }
 
   # Assemble results
   ans <- c(fit, modelList)

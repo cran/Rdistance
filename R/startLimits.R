@@ -1,4 +1,4 @@
-#' @title startLimits - Distance function starting values and limits
+#' @title Distance function starting values and limits
 #' 
 #' @description 
 #' Returns starting values and limits (boundaries) for the parameters of 
@@ -61,8 +61,6 @@
 #'   startLimits(modList)
 #'   
 #'   
-#' @keywords models
-#' 
 #' @export
 startLimits <- function( ml ){
 

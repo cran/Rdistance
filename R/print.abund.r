@@ -25,7 +25,7 @@
 #' 
 #' # Estimate abundance given a detection function
 #' fit <- abundEstim(object = dfunc
-#'                 , area = units::set_units(4105, "km^2")
+#'                 , area = setUnits(4105, "km^2")
 #'                 , ci = NULL)
 #' print(fit)
 #' summary(fit)
@@ -34,14 +34,14 @@
 #' # Bootstrap confidence intervals (500 iterations)
 #' # Requires ~4 min
 #' fit <- abundEstim(object = dfunc
-#'                 , area = units::set_units(4105, "km^2")
+#'                 , area = setUnits(4105, "km^2")
 #'                 , ci = 0.95
 #'                 , plot.bs = TRUE
 #'                 , showProgress = TRUE)
 #' print(fit)
 #' summary(fit)
 #' }
-#' @keywords models
+#' 
 #' @export
 
 print.abund <- function( x
@@ -53,13 +53,13 @@ print.abund <- function( x
   
   # ---- Density printout ----
   mess <- c("Density in sampled area:")
-  ptEst <- colorize( colorize(format(x$estimates$density)), col = "bold" )
+  ptEst <- colorize(format(x$estimates$density))
   mess <- paste(mess, ptEst)
   cat(paste0(mess, "\n"))
 
   # ---- Abundance printout ----
   mess <- paste0( "Abundance in ", format(x$estimates$area), " study area:")
-  ptEst <- colorize( colorize(format(x$estimates$abundance)), col = "bold" )
+  ptEst <- colorize(format(x$estimates$abundance))
   mess <- paste(mess, ptEst)
   cat(paste0(mess, "\n"))
 

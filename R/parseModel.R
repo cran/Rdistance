@@ -1,15 +1,14 @@
-#' @title parseModel - Parse Rdistance model
+#' @title Parse Rdistance model
 #' 
 #' @description 
 #' Parse an 'Rdistance' formula and produce a list containing all model 
 #' parameters.
+#' This routine is not normally called directly by the user, but 
+#' it might be helpful in simulations.  It is called 
+#' internally from the model estimation routines.
 #' 
 #' @inheritParams dfuncEstim
 #' @inheritParams dE.single
-#' 
-#' @details
-#' This routine is not intended to be called by the user.  It is called 
-#' from the model estimation routines in \code{Rdistance}.
 #' 
 #' 
 #' @return An Rdistance model frame, which is an object of class 
@@ -21,20 +20,14 @@
 #' number of expansions, etc.  Rdistance model frames contain a 
 #' subset of fitted Rdistance model components. 
 #' 
-#' @seealso [RdistDf()], which returns an Rdistance \emph{data} frame;
-#' [dfuncEstim()], which returns an Rdistance \emph{fitted} model.
+#' @seealso \code{\link{RdistDf}}, which returns an 
+#' Rdistance \emph{data} frame;
+#' \code{\link{dfuncEstim}}, which returns an 
+#' Rdistance \emph{fitted} model.
 #' 
 #' @examples
 #' 
-#' data(sparrowSiteData)
-#' data(sparrowDetectionData)
-#' 
-#' sparrowDf <- Rdistance::RdistDf(sparrowSiteData
-#'    , sparrowDetectionData
-#'    , by = NULL
-#'    , pointSurvey = FALSE
-#'    , observer = "single"
-#'    , .detectionCol = "detections")
+#' data(sparrowDf)
 #'    
 #' ml <- Rdistance::parseModel(sparrowDf
 #'    , formula = dist ~ 1 + observer + groupsize(groupsize)
@@ -51,7 +44,6 @@
 #' print.default(ml)
 #' 
 #' @export
-#' @importFrom stats terms.formula model.frame runif na.pass
 parseModel <- function(data
                           , formula = NULL
                           , likelihood = "halfnorm"
@@ -62,6 +54,7 @@ parseModel <- function(data
                           , x.scl = 0
                           , g.x.scl = 1
                           , outputUnits = NULL
+                          , asymptoticSE = TRUE
                           ){
 
   # Check validity of data set ----
@@ -72,7 +65,16 @@ parseModel <- function(data
   # Control parameters ----
   # if you want, could save control options in output object.
   # control <- options()[grep("Rdist_", names(options()))]
-  checkNEvalPts(getOption("Rdistance_intEvalPts")) # In Rdistance, not exported
+  
+  # checkNEvalPts computes and sets Simpson coefficients in options()
+  checkNEvalPts(getOption("Rdistance_intEvalPts")) # not exported
+  
+  # Check that we know the likelihood ----
+  if( !( likelihood %in% getOption("Rdistance_knownLikelihoods")) ){
+    stop(paste("Unknown likelihood. Likelihood must be one of"
+             , paste(getOption("Rdistance_knownLikelihoods"), collapse = ", ")
+             , "(case sensitive)."))
+  }
   
   # Check for a response ----
   # Otherwise, as.character(formula) is length 2, not 3
@@ -187,11 +189,11 @@ parseModel <- function(data
       formula = formula
       , data = dataWUnits$data
       , drop.unused.levels = TRUE
-      , na.action = na.pass
+      , na.action = stats::na.pass
     )    
 
   # Store a reduced data frame for abundance estimation later ----
-  allVars <- c(all.vars( terms(mf) ) # for covariates
+  allVars <- c(all.vars( stats::terms(mf) ) # for covariates
                , attr(data, "detectionColumn")
                , attr(data, "effortCol")
                , dplyr::group_vars(data))
@@ -211,13 +213,9 @@ parseModel <- function(data
              , x.scl = dataWUnits$x.scl
              , g.x.scl = g.x.scl
              , outputUnits = dataWUnits$outputUnits
+             , asymptoticSE = asymptoticSE
   )
   
-  # Enforce minimum number of spline basis functions ----
-  if (ml$expansions < 2 & ml$series == "bspline"){
-      ml$expansions <- 2
-      warning("Minimum spline expansions = 2. Proceeding with 2.")
-  }
 
   # Check x.scl, and override x.scl for Gamma likelihood ----
   if ( length(ml$x.scl) > 1 ){
@@ -232,7 +230,7 @@ parseModel <- function(data
   }
   
   if ( !is.character(ml$x.scl) ){
-    isZero <- units::set_units(ml$x.scl, NULL) == 0
+    isZero <- dropUnits(ml$x.scl) == 0
     if ( isZero & ml$likelihood == "Gamma" ){
         ml$x.scl <- "max"
         warning("Cannot specify g(0) for Gamma likelihood.  x.scl changed to 'max'.")

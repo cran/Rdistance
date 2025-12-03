@@ -1,4 +1,4 @@
-#' @title autoDistSamp - Automated classical distance analysis
+#' @title Automated classical distance analysis
 #' 
 #' @description Perform automated likelihood, expansion, and series
 #' selection for a classic distance sampling analysis.  Estimate 
@@ -50,26 +50,24 @@
 #'            , expansions = 0
 #'            , plot = FALSE
 #'            , ci = NULL
-#'            , area = units::set_units(1, "hectare")
+#'            , area = 1 %ha%.
 #' )
 #' 
 #' \dontrun{
 #' autoDistSamp(data = sparrowDf
 #'     , formula = dist ~ 1 + groupsize(groupsize)
 #'     , ci = 0.95
-#'     , area = units::set_units(1, "hectare")
+#'     , area = 1 %ha%.
 #' )     
 #' }
 #' 
 #'            
-#' @keywords model
-#' @importFrom graphics mtext
 #' @export
 
 autoDistSamp <- function (data
                           , formula
                           , likelihoods = c("halfnorm", "hazrate", "negexp")
-                          , w.lo = units::set_units(0,"m")
+                          , w.lo = setUnits(0,"m")
                           , w.hi = NULL
                           , expansions = 0:3
                           , series = c("cosine")
@@ -204,7 +202,7 @@ autoDistSamp <- function (data
             , expansions = expan
             , series = ser
             , x.scl = w.lo
-            , g.x.scl = 1
+            , g.x.scl = g.x.scl
             , warn = TRUE
             , outputUnits = NULL)
           
@@ -250,7 +248,7 @@ autoDistSamp <- function (data
     , expansions = fit.table$expansions[1]
     , series = fit.table$series[1]
     , x.scl = w.lo
-    , g.x.scl = 1
+    , g.x.scl = g.x.scl
     , warn = TRUE
     , outputUnits = NULL)
   if (plot) {

@@ -1,4 +1,4 @@
-#' @title model.matrix - Rdistance model matrix
+#' @title Rdistance model matrix
 #'
 #' @description 
 #' Extract the model matrix ("X" matrix) from an Rdistance model object.
@@ -19,7 +19,6 @@
 #' model.matrix(sparrowModel)
 #' 
 #' @export
-#' @importFrom stats model.matrix terms
 #' 
 model.matrix.dfunc <- function(object, ...){
   # ml$mf is a regular linear model frame, with terms, so this is easy

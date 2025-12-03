@@ -36,7 +36,7 @@
 #' 
 #' # Estimate abundance given the detection function
 #' fit <- abundEstim(dfunc
-#'                 , area = units::set_units(4105, "km^2")
+#'                 , area = setUnits(4105, "km^2")
 #'                 , ci=NULL)
 #' summary(fit) # No confidence intervals
 #'                 
@@ -44,12 +44,11 @@
 #' # With bootstrap confidence intervals 
 #' # Requires ~3 min to complete
 #' fit <- abundEstim(dfunc
-#'                 , area = units::set_units(4105, "km^2")
+#'                 , area = setUnits(4105, "km^2")
 #'                 , ci=0.95)
 #' 
 #' summary(fit)
 #' }
-#' @keywords models
 #' @export
 
 summary.abund <- function( object
@@ -91,11 +90,11 @@ summary.abund <- function( object
     ci <- paste( colorize(format(ests$density_lo)), 
                  "to", 
                  colorize(format(ests$density_hi)) )
-    ptEst <- colorize( colorize(format(ests$density)), col = "bold" )
+    ptEst <- colorize( format(ests$density) )
     mess <- paste(mess, c(ptEst, ci))
   } else {
     mess <- c("Density in sampled area:")
-    ptEst <- colorize( colorize(format(ests$density)), col = "bold" )
+    ptEst <- colorize( format(ests$density) )
     mess <- paste(mess, ptEst)
   }
   cat(paste0(mess, "\n"))
@@ -112,11 +111,11 @@ summary.abund <- function( object
     ci <- paste( colorize(format(ests$abundance_lo)), 
                  "to", 
                  colorize(format(ests$abundance_hi)) )
-    ptEst <- colorize( colorize(format(ests$abundance)), col = "bold" )
+    ptEst <- colorize(format(ests$abundance))
     mess <- paste(mess, c(ptEst, ci))
   } else {
     mess <- paste0( "Abundance in ", format(ests$area), " study area:")
-    ptEst <- colorize( colorize(format(ests$abundance)), col = "bold" )
+    ptEst <- colorize(format(ests$abundance))
     mess <- paste(mess, ptEst)
   }
   cat(paste0(mess, "\n"))

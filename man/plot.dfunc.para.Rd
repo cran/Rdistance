@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot.dfunc.para.R
 \name{plot.dfunc.para}
 \alias{plot.dfunc.para}
-\title{plot.dfunc.para - Plot parametric distance functions}
+\title{Plot parametric distance functions}
 \usage{
 \method{plot}{dfunc.para}(
   x,
@@ -150,17 +150,17 @@ Plot method for parametric line and point transect distance functions.
 }
 \examples{
 
-# Example data
+# Simulated data
 set.seed(87654)
 x <- rnorm(1000, mean=0, sd=20)
 x <- x[x >= 0]
-x <- units::set_units(x, "ft")
+x <- setUnits(x, "ft")
 Df <- data.frame(transectID = "A"
                , distance = x
                 ) |> 
   dplyr::nest_by( transectID
                , .key = "detections") |> 
-  dplyr::mutate(length = units::set_units(1,"mi"))
+  dplyr::mutate(length = setUnits(1,"mi"))
 attr(Df, "detectionColumn") <- "detections"
 attr(Df, "obsType") <- "single"
 attr(Df, "transType") <- "line"

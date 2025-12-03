@@ -2,7 +2,7 @@
 % Please edit documentation in R/oneBsIter.R
 \name{oneBsIter}
 \alias{oneBsIter}
-\title{oneBsIter - Computations for one bootstrap iteration}
+\title{Computations for one bootstrap iteration}
 \usage{
 oneBsIter(
   indexDf,
@@ -22,7 +22,8 @@ oneBsIter(
   propUnitSurveyed,
   pb,
   plot.bs,
-  plotCovValues
+  plotCovValues,
+  asymptoticSE = FALSE
 )
 }
 \arguments{
@@ -31,13 +32,13 @@ for subsetting the rows of \code{data}. The actual indices are
 in column \code{rowIndex}.}
 
 \item{key}{A data frame containing the current id of the 
-BS iteration.  This is included for compatability with 
+BS iteration.  This is included for compatibility with 
 \code{dplyr::group_modify}, but it is not used internally.
 The original non-resampled data have \code{key == "Original"}.}
 
 \item{data}{An Rdistance nested data frame containing 
 the data to bootstrap resample.  Rows of this data frame, 
-equating to transects, are sampled using the indicies in 
+equating to transects, are sampled using the indices in 
 \code{indexDf$rowIndex}.}
 
 \item{formula}{A standard formula object.  For example, \code{dist ~ 1}, 
@@ -45,7 +46,9 @@ equating to transects, are sampled using the indicies in
 is the name of the vector containing off-transect or radial detection distances.  
 The right-hand side contains the names of covariate 
 vectors to fit in the detection
-function, and potentially group sizes. 
+function, and potentially group sizes. Group sizes are specified 
+by including \code{+ groupsize(<variable>)} in the RHS 
+(see 'Group Sizes' section).
 Covariates can be either detection level 
 or transect level and can appear in  \code{data} or exist in the 
 global working environment. Regular R scoping 
@@ -56,20 +59,16 @@ likelihoods at present are "halfnorm", "hazrate", and "negexp".}
 
 \item{w.lo}{Lower or left-truncation limit of the distances in distance data. 
 This is the minimum possible off-transect distance. Default is 0.  If 
-\code{w.lo} is greater than 0, it must be assigned measurement units
-using \code{units(w.lo) <- "<units>"} or 
-\code{w.lo <- units::set_units(w.lo, "<units>")}. 
-See examples in the help for \code{set_units}.}
+\code{w.lo} is greater than 0, it must have measurement units. 
+See \code{help(unitHelpers)} for assistance assigning units.}
 
 \item{w.hi}{Upper or right-truncation limit of the distances 
 in \code{dist}. This is the maximum off-transect distance that 
 could be observed. If unspecified (i.e., NULL), 
 right-truncation is set to the maximum of the observed 
-distances.  If \code{w.hi} is specified, it must have associated 
-measurement units.  Assign measurement units
-using \code{units(w.hi) <- "<units>"} or 
-\code{w.hi <- units::set_units(w.hi, "<units>")}. 
-See examples in the help for \code{set_units}.}
+distances.  If \code{w.hi} is specified, it must have  
+measurement units.  
+See \code{help(unitHelpers)} for assistance assigning units.}
 
 \item{expansions}{A scalar specifying the number of terms 
 in \code{series} to compute. Depending on the series, 
@@ -88,9 +87,8 @@ present are 'simple', 'hermite', and 'cosine'.}
 detection function will be scaled.  \code{g.x.scl} can be a distance
 or the string "max".  
 When \code{x.scl} is specified (i.e., not 0 or "max"), it must have measurement 
-units assigned using either \code{library(units);units(x.scl) <- '<units>'}
-or \code{x.scl <- units::set_units(x.scl, <units>)}. See
-\code{units::valid_udunits()} for valid symbolic units.}
+units assigned. 
+See \code{help(unitHelpers)} for assistance assigning units.}
 
 \item{g.x.scl}{Height of the distance function at coordinate \code{x}. 
 The distance function 
@@ -154,6 +152,23 @@ A plot must already exist because this uses \code{lines}.}
 
 \item{plotCovValues}{Data frame containing values of covariates to plot, 
 if \code{plot.bs} is TRUE.}
+
+\item{asymptoticSE}{Logical variable for whether to calculate 
+asymptotic standard errors. The default (TRUE) estimates an
+asymptotic variance-covariance matrix for parameters based on the 
+likelihood's Hessian (2nd derivative). If maximization 
+has been performed by Nlminb or HookesJeeves, the asymptotic 
+Hessian is estimated using numeric second deriviatives 
+of the likelihood at the maximum likelihood solution. If 
+maximization was performed by Optim, the last Hessian of 
+the maximization is returned 
+by Optim and used
+(see \code{\link{varcovarEstim}} and \code{\link{secondDeriv}}). 
+Asymptotic standard errors will not be estimated if 
+\code{asymptoticSE = FALSE}. If not estimated, 
+bootstrap iterations will run faster because the numeric Hessian, 
+which is discarded during bootstrapping,
+will not be calculated every iteration.}
 }
 \value{
 A data frame containing density and abundance 

@@ -57,20 +57,19 @@
 #' summary(dfunc)
 #' summary(dfunc, criterion="BIC")
 #' 
-#' @keywords models
 #' @export
-#' @importFrom stats pnorm
-
 summary.dfunc <- function( object, criterion="AICc", ... ){
 
   object <- print.dfunc(x = object, ...)
   
   # Convergence and likelihood line ----
   if( !(isSmooth <- is.smoothed(object)) ){
-    if( grepl("Success", object$convMessage) ){
+    # **** CHANGE THIS grepl IF SUCCESSFUL MESSAGE CHANGES IN PRINT.DFUNC
+    if( grepl("(Asymptotic|Bootstrap) SE's", object$convMessage)){
       # b/c FAILURE mess printed in 'print.dfunc', but not Success
+      # or "pending bootstrap" messages
       cat("\n")
-      cat(paste("Convergence: ", object$convMessage,  "\n", sep=""))
+      cat(paste("Message: ", object$convMessage,  "\n", sep=""))
     }
 
     if( object$expansions==0 ){
@@ -90,7 +89,7 @@ summary.dfunc <- function( object, criterion="AICc", ... ){
   # Effective distance line ----
   effDist <- effectiveDistance(object)
   pDetect <- effDist / (object$w.hi - object$w.lo) 
-  pDetect <- units::set_units(pDetect, NULL)  # units of pDetect should always be [1]
+  pDetect <- dropUnits(pDetect)  # units of pDetect should always be [1]
   interceptOnly <- intercept.only(object) # in Rdistance, not exported
 
   if( is.points(object) ){

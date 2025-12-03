@@ -1,4 +1,4 @@
-#' @title bcCI - Bias corrected bootstraps
+#' @title Bias corrected bootstraps
 #' 
 #' @description
 #' Calculate bias-corrected confidence intervals for bootstrap data
@@ -15,7 +15,6 @@
 #' the bias-corrected bootstrap confidence interval. 
 #' 
 #' @export
-#' @importFrom stats qnorm pnorm quantile
 #' 
 bcCI <- function(x.bs, x, ci = 0.95){
   p <- mean(x.bs > x, na.rm = TRUE)

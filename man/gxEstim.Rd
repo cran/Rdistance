@@ -2,7 +2,7 @@
 % Please edit documentation in R/gxEstim.r
 \name{gxEstim}
 \alias{gxEstim}
-\title{gxEstim - Estimate g(0) or g(x)}
+\title{Estimate g(0) or g(x)}
 \usage{
 gxEstim(fit)
 }
@@ -92,15 +92,14 @@ fit <- dfuncEstim(sparrowDf, dist ~ groupsize(groupsize))
 gxEstim(fit)
   
 fit <- dfuncEstim(sparrowDf, dist ~ groupsize(groupsize)
-                , x.scl = units::set_units(50,"m")
+                , x.scl = 50 \%m\%.
                 , g.x.scl = 0.75)
 gxEstim(fit)
 plot(fit)
 abline(h=0.75)
-abline(v=units::set_units(50,"m"))
+abline(v=50\%m\%.)
   
 }
 \seealso{
 \code{\link{dfuncEstim}}
 }
-\keyword{model}

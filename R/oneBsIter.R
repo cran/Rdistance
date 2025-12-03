@@ -1,4 +1,4 @@
-#' @title oneBsIter - Computations for one bootstrap iteration
+#' @title Computations for one bootstrap iteration
 #' 
 #' @description
 #' An internal (un-exported) function to perform density and 
@@ -9,13 +9,13 @@
 #' in column \code{rowIndex}.
 #' 
 #' @param key A data frame containing the current id of the 
-#' BS iteration.  This is included for compatability with 
+#' BS iteration.  This is included for compatibility with 
 #' \code{dplyr::group_modify}, but it is not used internally.
 #' The original non-resampled data have \code{key == "Original"}.
 #' 
 #' @param data An Rdistance nested data frame containing 
 #' the data to bootstrap resample.  Rows of this data frame, 
-#' equating to transects, are sampled using the indicies in 
+#' equating to transects, are sampled using the indices in 
 #' \code{indexDf$rowIndex}. 
 #' 
 #' @param pb A progress bar created with \code{progress::progress_bar$new()}.
@@ -34,7 +34,6 @@
 #' and other relevant statistics for 
 #' one iteration of the bootstrap. 
 #' 
-#' @importFrom graphics lines
 #' 
 oneBsIter <- function(indexDf
                       , key
@@ -54,11 +53,12 @@ oneBsIter <- function(indexDf
                       , pb
                       , plot.bs
                       , plotCovValues
+                      , asymptoticSE = FALSE
 ){
   
   bsdf <- data[indexDf$rowIndex,]
   
-  dfunc.bs <- Rdistance::dfuncEstim(data = bsdf,
+  dfunc.bs <- dfuncEstim(data = bsdf,
                          formula = formula,  
                          likelihood = likelihood, 
                          w.lo = w.lo,
@@ -68,36 +68,16 @@ oneBsIter <- function(indexDf
                          x.scl = x.scl, 
                          g.x.scl = g.x.scl,
                          outputUnits = outputUnits,
-                         warn = warn)
+                         warn = warn, 
+                         asymptoticSE = asymptoticSE)
 
   # Note: Convergence is checked in estimateN. If nonConvergent, nEst$density returns NA
-  nEst <- Rdistance::estimateN(
+  nEst <- estimateN(
       dfunc.bs
     , area = area
     , propUnitSurveyed = propUnitSurveyed
   )
 
-  Coefs <- data.frame(matrix(coef(dfunc.bs), nrow = 1))
-  names(Coefs) <- names(coef(dfunc.bs))
-  
-  if(Rdistance::is.points(data)){
-    avgEDD <- mean( sqrt(nEst$pDetection) * nEst$w, na.rm = TRUE)
-  } else {
-    avgEDD <- mean( nEst$pDetection * nEst$w, na.rm = TRUE)
-  }
-  
-  out <- tibble::tibble(
-    Coefs
-    , density = nEst$density
-    , abundance = nEst$abundance
-    , nGroups = nEst$n.groups
-    , nSeen = nEst$n.seen
-    , area = nEst$area
-    , surveyedUnits = nEst$surveyedUnits
-    , avgGroupSize = nEst$avg.group.size
-    , avgEffDistance = avgEDD
-  )
-  
   if ( plot.bs ) {
     graphics::lines(dfunc.bs
           , newdata = plotCovValues
@@ -108,5 +88,5 @@ oneBsIter <- function(indexDf
   
   pb$tick()
   
-  out        
+  nEst        
 }

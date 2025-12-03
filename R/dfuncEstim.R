@@ -1,4 +1,4 @@
-#' @title dfuncEstim - Estimate a distance-based detection function
+#' @title Estimate a distance-based detection function
 #' 
 #' @description Fits a detection function using maximum likelihood. 
 #'
@@ -47,7 +47,7 @@
 #'   
 #' data(sparrowDfuncObserver) # pre-estimated object
 #' \dontrun{                 
-#' # Command to produce 'sparrowDfuncObserver'
+#' # Commands that produced 'sparrowDfuncObserver'
 #' sparrowDfuncObserver <- sparrowDf |> 
 #'          dfuncEstim( 
 #'            formula = dist ~ observer
@@ -55,15 +55,22 @@
 #' }     
 #' sparrowDfuncObserver
 #' summary(sparrowDfuncObserver)
-#' plot(sparrowDfuncObserver)                   
+#' plot(sparrowDfuncObserver)
+#' plot(sparrowDfuncObserver
+#'    , newdata = data.frame(observer = c("obs1", "obs2", "obs3"
+#'                                      , "obs4", "obs5")))
 #'
-#' @keywords model
 #' @export
 
 dfuncEstim <- function (  data, ... ){
 
   call <- match.call()
   obsType <- Rdistance::observationType(data)
+  
+  # because Rdistance can override some options, e.g. optimizer
+  # for oneStep, save a copy of options so can restore later.
+  op <- options()
+  op <- op[grepl("Rdistance_", names(op))]
 
   # Dispatch separate estimation functions based on observer type ----
   res <- switch( obsType
@@ -88,8 +95,8 @@ dfuncEstim <- function (  data, ... ){
   #   nCovars > 0 : model has 'nCovars' besides intercept,
   #                 e.g., dist ~ observer + height => nCovars = 2
 
-  nCovars <- length(attr(terms(res$mf), "term.labels"))
-  if( attr(terms(res$mf), "intercept") == 0 ){
+  nCovars <- length(attr(stats::terms(res$mf), "term.labels"))
+  if( attr(stats::terms(res$mf), "intercept") == 0 ){
     nCovars <- -nCovars  
   }
   res$nCovars <- nCovars
@@ -100,6 +107,12 @@ dfuncEstim <- function (  data, ... ){
   } else {
     res$LhoodType <- res$likelihood  # Gamma and smu
   }
+
+  # restore options, but make sure intEvalPts and intCoeffs match b/c 
+  # they could have changed.
+  options(op) # restores old intEvalPts and intCoeffs that may not match
+  intCoefs <- simpsonCoefs(getOption("Rdistance_intEvalPts"))
+  options(Rdistance_intCoefs = intCoefs)
 
   res 
 }

@@ -1,7 +1,7 @@
-#' @name sparrowDf 
-#' 
 #' @title Brewer's Sparrow detection data frame
 #' in Rdistance >4.0.0 format.
+#' 
+#' @name sparrowDf 
 #' 
 #' @description 
 #' Detection data from line transect surveys for Brewer's sparrow on 72 transects 
@@ -81,5 +81,4 @@
 #' in Wyoming, USA. \emph{Avian Conservation and Ecology} 15(2):16. 
 #' \doi{10.5751/ACE-01702-150216}
 #' 
-#' @keywords datasets
 NULL

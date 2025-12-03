@@ -2,7 +2,7 @@
 % Please edit documentation in R/AIC.dfunc.R
 \name{AIC.dfunc}
 \alias{AIC.dfunc}
-\title{AIC.dfunc - AIC-related fit statistics for detection functions}
+\title{AIC-related fit statistics for detection functions}
 \usage{
 \method{AIC}{dfunc}(object, ..., criterion = "AICc")
 }
@@ -65,4 +65,3 @@ Burnham, K. P., and D. R. Anderson, 2002.
 \seealso{
 \code{\link{coef}}, \code{\link{dfuncEstim}}
 }
-\keyword{model}

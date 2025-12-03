@@ -2,7 +2,7 @@
 % Please edit documentation in R/startLimits.R
 \name{startLimits}
 \alias{startLimits}
-\title{startLimits - Distance function starting values and limits}
+\title{Distance function starting values and limits}
 \usage{
 startLimits(ml)
 }
@@ -70,4 +70,3 @@ Returns starting values and limits (boundaries) for the parameters of
 \seealso{
 \code{\link{dfuncEstim}}
 }
-\keyword{models}

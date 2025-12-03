@@ -1,4 +1,4 @@
-#' @title is.Unitless - Test whether object is unitless
+#' @title Test whether object is unitless
 #' 
 #' @description Tests whether a 'units' object is actually 
 #' unitless.  
@@ -19,7 +19,7 @@
 #' returns TRUE. 
 #' 
 #' @examples 
-#' a <- units::set_units(2, "m")
+#' a <- setUnits(2, "m")
 #' b <- a / a
 #' is.Unitless(a)
 #' is.Unitless(b)

@@ -2,7 +2,7 @@
 % Please edit documentation in R/coef.dfunc.r
 \name{coef.dfunc}
 \alias{coef.dfunc}
-\title{coef.dfunc - Coefficients of an estimated detection function}
+\title{Coefficients of an estimated detection function}
 \usage{
 \method{coef}{dfunc}(object, \dots)
 }
@@ -30,7 +30,7 @@ coef(sparrowDfuncObserver)
 \dontrun{
 data(sparrowDf)
 dfunc <- sparrowDf |> dfuncEstim(dist~bare + observer,
-                      w.hi=units::set_units(150, "m"))
+                      w.hi = 150 \%m\%.)
 coef(dfunc)
 }
  
@@ -38,4 +38,3 @@ coef(dfunc)
 \seealso{
 \code{\link{AIC}}, \code{\link{dfuncEstim}}
 }
-\keyword{model}

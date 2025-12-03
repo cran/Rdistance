@@ -1,4 +1,4 @@
-#' @title checkRdistDf - Check RdistDf data frames
+#' @title Check RdistDf data frames
 #' 
 #' @description
 #' Checks the validity of \code{Rdistance} nested data frames. 
@@ -191,7 +191,7 @@ is.RdistDf <- function(df, verbose = FALSE){
             dfName
             , "$"
             , effCol
-            , " <- units::set_units( "
+            , " <- setUnits( "
             , dfName
             , "$"
             , effCol

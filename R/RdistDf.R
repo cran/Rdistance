@@ -1,4 +1,4 @@
-#' @title RdistDf - Construct Rdistance nested data frames
+#' @title Construct Rdistance nested data frames
 #' 
 #' @description Makes an \code{Rdistance} data frame from 
 #' separate transect and detection 
@@ -199,7 +199,7 @@
 #' summary(sparrowDf)
 #' summary(sparrowDf
 #'       , formula = dist ~ groupsize(groupsize)
-#'       , w.hi = units::set_units(100, "m"))
+#'       , w.hi = 100 %m%.)
 #' 
 #' # Equivalent to above: 
 #' sparrowDf <- sparrowDetectionData |> 

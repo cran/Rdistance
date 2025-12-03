@@ -1,4 +1,4 @@
-#' @title predict.dfunc - Predict distance functions
+#' @title Predict distance functions
 #' 
 #' @description Predict either likelihood parameters, 
 #' distance functions, site-specific density, or 
@@ -171,7 +171,7 @@
 #' p <- predict(dfuncObs, type = "dfunc") 
 #' all(dim(p) == c(nd, n))
 #' 
-#' d <- units::set_units(c(0, 20, 40), "ft")
+#' d <- setUnits(c(0, 20, 40), "ft")
 #' p <- predict(dfuncObs, distances = d, type = "dfunc") 
 #' all(dim(p) == c(3, n))
 #' 
@@ -197,7 +197,7 @@
 #' 
 #' predict(sparrowDfuncObserver, type = "dfunc") # nd X n
 #' predict(sparrowDfuncObserver, newdata = Observers, type = "dfunc") # nd X 5
-#' d <- units::set_units(c(0, 150, 400), "ft")
+#' d <- setUnits(c(0, 150, 400), "ft")
 #' predict(sparrowDfuncObserver
 #'   , newdata = Observers
 #'   , distances = d
@@ -209,8 +209,6 @@
 #'   
 #' @export
 #' 
-#' 
-#' @importFrom stats terms as.formula delete.response model.frame model.matrix coef
 #' 
 predict.dfunc <- function(object
                         , newdata = NULL
@@ -232,11 +230,11 @@ predict.dfunc <- function(object
   if( !isSmooth ){
     if ( is.null(newdata) | (type == "likelihood") ) {
       # Case: Use original covars
-      X <- model.matrix(object)
+      X <- stats::model.matrix(object)
     } else {
       # We have NEWDATA to deal with
-      Terms <- terms( object$mf )
-      Terms <- delete.response( Terms ) # model.frame (below) fails if there's a response, go figure.
+      Terms <- stats::terms( object$mf )
+      Terms <- stats::delete.response( Terms ) # model.frame (below) fails if there's a response, go figure.
       gsName <- all.vars(Terms)[ attr(Terms, "offset") ] # there is always an offset
       if( !(gsName %in% names(newdata)) ){
         # gotta add a fake groupsize to newdata so model.frame (below) works
@@ -245,17 +243,25 @@ predict.dfunc <- function(object
         names(newdata)[length(names(newdata))] <- gsName
       }
       xLevs <- lapply( object$mf, levels ) # get unspecified levels of factors
-      m <- model.frame( formula = Terms
+      m <- stats::model.frame( formula = Terms
                       , data = newdata
                       , xlev = xLevs )
-      X <- model.matrix( object = Terms
+      X <- stats::model.matrix( object = Terms
                        , data = m
                        , contrasts.arg = attr(object$mf,"contrasts") )
     }
     
-    BETA <- coef(object)
+    BETA <- stats::coef(object)
     p <- length(BETA)
     q <- ncol(X)
+    
+    # cat(crayon::red("In predict.dfunc:\n"))
+    # cat(crayon::red("BETA = \n"))
+    # print(BETA)
+    # cat(crayon::red("dim(X) = "))
+    # cat(paste(dim(X), collapse = ", "))
+    # cat("\n\n")
+    
     paramsLink <- X %*% BETA[1:q] # could be extra parameters tacked on. e.g., knee for logistc or expansion terms
   
     if(q < p){
@@ -263,6 +269,8 @@ predict.dfunc <- function(object
                           , nrow = nrow(paramsLink)
                           , ncol = p-q
                           , byrow = TRUE)
+      # types 'dfunc' and 'likelihood' need the extra params attached
+      # other types do not; but, attach extras anyway
       paramsLink <- cbind(paramsLink, extraParams)
     } else {
       extraParams <- NULL
@@ -290,8 +298,17 @@ predict.dfunc <- function(object
                                , propUnitSurveyed = propUnitSurveyed
                                 )  
          , {  # the default = parameters
-             cbind(exp(paramsLink[,1]), # All link functions are exp...thus far
-                   extraParams )
+             parms <- cbind(exp(paramsLink[,1]), # All link functions are exp...thus far
+                            extraParams )
+             varyingParmName <- likeParamNames(object$likelihood)[1]
+             if( q < p ){
+               extraParmNames <- names(stats::coef(object))[(q+1):p]
+             } else {
+               extraParmNames <- NULL
+             }
+             dimnames(parms) <- list(rownames(newdata)
+                                   , c(varyingParmName, extraParmNames))
+             parms
            }
     )
   )

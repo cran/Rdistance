@@ -1,6 +1,6 @@
-#' @name sparrowDetectionData
-#' 
 #' @title Brewer's Sparrow detection data 
+#' 
+#' @name sparrowDetectionData
 #' 
 #' @description 
 #' Detection data from line transect surveys for 
@@ -44,5 +44,4 @@
 #' in Wyoming, USA. \emph{Avian Conservation and Ecology} 15(2):16. 
 #' \doi{10.5751/ACE-01702-150216}
 #' 
-#' @keywords datasets
 NULL

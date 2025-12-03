@@ -1,6 +1,4 @@
-#' @aliases plot.dfunc 
-#'   
-#' @title plot.dfunc - Plot method for distance (detection) functions
+#' @title Plot method for distance (detection) functions
 #'   
 #' @description Plot method for objects of class '\code{dfunc}'.  Objects of 
 #' class '\code{dfunc}' are estimated distance functions produced by 
@@ -45,16 +43,17 @@
 #'   \code{\link{print.abund}}
 #'   
 #' @examples 
+#' # Simulated RdistDf
 #' set.seed(87654)
 #' x <- rnorm(1000, mean=0, sd=20)
 #' x <- x[x >= 0]
-#' x <- units::set_units(x, "ft")
+#' x <- setUnits(x, "ft")
 #' Df <- data.frame(transectID = "A"
 #'                , distance = x
 #'                 ) |> 
 #'   dplyr::nest_by( transectID
 #'                , .key = "detections") |> 
-#'   dplyr::mutate(length = units::set_units(1,"mi"))
+#'   dplyr::mutate(length = setUnits(1,"mi"))
 #' attr(Df, "detectionColumn") <- "detections"
 #' attr(Df, "obsType") <- "single"
 #' attr(Df, "transType") <- "line"
@@ -65,7 +64,7 @@
 #' plot(dfunc)
 #' plot(dfunc, nbins=25)
 #' 
-#' # showing effects of plot params
+#' # showing effects of plot parameters
 #' plot(dfunc
 #'   , col=c("red","blue","orange")
 #'   , border="black"
@@ -100,6 +99,11 @@
 #'    , col.axis="blue")
 #' rug(distances(dfunc))
 #' 
+#' # un-equal bin widths, nbins must span distances
+#' plot(dfunc
+#'    , nbins = c(0,2.5,5,7.5,10,15,25,50,70)
+#' )
+#' 
 #' # Plot showing f(0)
 #' hist(distances(dfunc)
 #'    , n = 40
@@ -108,6 +112,7 @@
 #' x <- seq(dfunc$w.lo, dfunc$w.hi, length=200)
 #' g <- predict(dfunc, type="dfunc", distances = x, newdata = data.frame(a=1))
 #' f <- g[,1] / ESW(dfunc)[1]
+#' 
 #' # Check integration:
 #' sum(diff(x)*(f[-1] + f[-length(f)]) / 2) # Trapazoid rule; should be 1.0
 #' lines(x, f) # hence, 1/f(0) = ESW

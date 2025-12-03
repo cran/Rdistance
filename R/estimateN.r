@@ -1,4 +1,4 @@
-#' @title estimateN - Abundance point estimates
+#' @title Abundance point estimates
 #' 
 #' @description Estimate abundance from an Rdistance fitted model. 
 #' This function is called internally by \code{abundEstim}.  Most users will call 
@@ -60,7 +60,7 @@ estimateN <- function(object
   if( !Rdistance::is.points(object) ){
     if(units(totSurveyedUnits) != object$outputUnits){
       # w has units we want; but, effort came from user and has not been converted yet
-      totSurveyedUnits <- units::set_units(totSurveyedUnits, object$outputUnits, mode="standard")
+      totSurveyedUnits <- setUnits(totSurveyedUnits, object$outputUnits)
     }
   }  # Point effort vector has no units b/c it's number of points
   
@@ -83,7 +83,7 @@ estimateN <- function(object
     # Odd: sometimes phat has units "1", sometimes "m/m". Either way, remove,
     # but don't use units::drop_units which only works if phat has units to drop.
     # Assigning NULL units always works
-    phat <- units::set_units(phat, NULL)
+    phat <- dropUnits(phat)
     nhat <- groupSz / phat # inflated counts one per detection
     
     # ---- Compute density ----
@@ -94,20 +94,20 @@ estimateN <- function(object
     }
     
     # ---- Compute abundance ----
-    oneSqUnit <- units::set_units(1, object$outputUnits, mode = "standard")^2 
+    oneSqUnit <- setUnits(1, object$outputUnits)^2 
     if( is.null(area) ){
       area <- oneSqUnit
     } else if( units(area) != units(oneSqUnit) ){
-      area <- units::set_units(area, units(oneSqUnit), mode="standard")
+      area <- setUnits(area, units(oneSqUnit))
     }
     
     nhat.df <- dens * area
-    if( units(nhat.df) != units(units::set_units(1, "1")) ){
+    if( units(nhat.df) != units(setUnits(1, "1")) ){
       warning(paste("Units on N are not 1 (unitless). Some units did not convert correctly."
                     , "Manually convert all measurements"
                     , "to the same units outside Rdistance, and re-run."))
     } else {
-      nhat.df <- units::set_units(nhat.df, NULL)
+      nhat.df <- dropUnits(nhat.df)
     }
     
   } else {
@@ -117,19 +117,29 @@ estimateN <- function(object
     phat <- NA
   }
 
+  Coefs <- data.frame(matrix(stats::coef(object), nrow = 1))
+  names(Coefs) <- names(stats::coef(object))
+  
+  if(Rdistance::is.points(object)){
+    avgEDD <- mean( sqrt(phat) * w, na.rm = TRUE)
+  } else {
+    avgEDD <- mean( phat * w, na.rm = TRUE)
+  }
+  
   # ---- Make output data frame ----
-  nhat.df <- list(density = dens
-                  , abundance = nhat.df
-                  , n.groups = sum(!is.na(groupSz))
-                  , n.seen = sum(groupSz, na.rm = TRUE)
-                  , area = area
-                  , surveyedUnits = totSurveyedUnits
-                  , propUnitSurveyed = propUnitSurveyed
-                  , avg.group.size = mean(groupSz, na.rm = TRUE)
-                  # , range.group.size = range(groupSz)
-                  , w = w
-                  , pDetection = phat
-                  )
+  nhat.df <- tibble::tibble(
+    Coefs
+    , density = dens
+    , abundance = nhat.df
+    , nGroups = sum(!is.na(groupSz))
+    , nSeen = sum(groupSz, na.rm = TRUE)
+    , avgGroupSize = mean(groupSz, na.rm = TRUE)
+    , area = area
+    , surveyedUnits = totSurveyedUnits
+    , propUnitSurveyed = propUnitSurveyed
+    , w = w
+    , avgEffDistance = avgEDD
+  )
 
   # some interesting tidbits:
   #  sampled area = tot.trans.len * 2 * (dfunc$w.hi - dfunc$w.lo)
@@ -145,8 +155,6 @@ estimateN <- function(object
   #    n.indivs / (nhat.groups*mean.grp.size) = n.groups / nhat.groups = 
   #    what Distance calls "Average p".  This is different than mean(phat) 
   #    the way Rdistance calculates it.
-  
-  
 
   return(nhat.df)
 }  

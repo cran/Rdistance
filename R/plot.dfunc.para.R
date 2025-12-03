@@ -1,4 +1,4 @@
-#' @title plot.dfunc.para - Plot parametric distance functions
+#' @title Plot parametric distance functions
 #' 
 #' @description
 #' Plot method for parametric line and point transect distance functions. 
@@ -120,17 +120,17 @@
 #' 
 #' @examples
 #' 
-#' # Example data
+#' # Simulated data
 #' set.seed(87654)
 #' x <- rnorm(1000, mean=0, sd=20)
 #' x <- x[x >= 0]
-#' x <- units::set_units(x, "ft")
+#' x <- setUnits(x, "ft")
 #' Df <- data.frame(transectID = "A"
 #'                , distance = x
 #'                 ) |> 
 #'   dplyr::nest_by( transectID
 #'                , .key = "detections") |> 
-#'   dplyr::mutate(length = units::set_units(1,"mi"))
+#'   dplyr::mutate(length = setUnits(1,"mi"))
 #' attr(Df, "detectionColumn") <- "detections"
 #' attr(Df, "obsType") <- "single"
 #' attr(Df, "transType") <- "line"
@@ -144,9 +144,6 @@
 #' plot(dfunc)
 #' plot(dfunc, nbins=25)
 #'
-#' @importFrom stats predict
-#' @importFrom graphics hist par barplot axTicks axis lines matpoints text
-#' @importFrom grDevices rainbow
 plot.dfunc.para <- function( x, 
                         include.zero=FALSE, 
                         nbins="Sturges", 
@@ -173,43 +170,17 @@ plot.dfunc.para <- function( x,
   whi <- x$w.hi
   wlo <- x$w.lo
   
-  if(is.character(nbins)){
-    if( nbins %in% c("Sturges", "scott", "FD")){
-      nbins <- paste0("nclass.", nbins)
-    }
-    nbins <- match.fun(nbins)
-    nbins <- nbins(d)
-  }
-  brks <- pretty( x = d
-                  , n = nbins )
   cnts <- graphics::hist( d
                 , plot = FALSE
-                , breaks = brks
+                , breaks = nbins
                 , include.lowest = TRUE
                 , warn.unused = FALSE)
   
   # hist should return breaks with units attached, but it does not
   cnts$breaks <- units::as_units(cnts$breaks, x$outputUnits)
   cnts$mids <- units::as_units(cnts$mids, x$outputUnits)
-  xscl <- cnts$mid[2] - cnts$mid[1]
-  like <- utils::getFromNamespace(paste0( x$likelihood, ".like"), "Rdistance")    
+  xscl <- diff(cnts$breaks) 
   x.seq <- seq( x$w.lo, x$w.hi, length=getOption("Rdistance_intEvalPts") )
-  
-  # #   Gotta add bars on the left if first bar is not at w.lo.  I.e., if first 
-  # #   bar is not zero.  Zero bars at top end are not a problem, but low end are because
-  # #   barplot just plots bars, not coordinates
-  # if( cnts$breaks[1] > x$w.lo ){
-  #   # do the hist again, this time specifying breaks exactly
-  #   brks <- seq(x$w.lo, x$w.hi, by=xscl)
-  #   brks <- c(brks, brks[length(brks)] + xscl )   # make sure last bin goes outside range of data
-  #   cnts <- hist( xInStrip
-  #                 , plot=FALSE
-  #                 , breaks=units::drop_units(brks)
-  #                 , include.lowest=TRUE
-  #                 , warn.unused = FALSE)
-  #   cnts$breaks <- units::as_units(cnts$breaks, x$outputUnits)
-  #   cnts$mids <- units::as_units(cnts$mids, x$outputUnits)
-  # }
   
   
   # Fixup new data if missing ----
@@ -232,7 +203,7 @@ plot.dfunc.para <- function( x,
     # Note: x$mf is the model frame. It has only non-missing values between w.lo and w.hi
     # x$mf[,-1] has covariates in un-expanded-for-indicator variables format 
     
-    covNames <- labels(terms(x$mf)) # Intercept not included here
+    covNames <- labels(stats::terms(x$mf)) # Intercept not included here
     newdata <- matrix(NA, nrow = 1, ncol = length(covNames))
     colnames(newdata) <- covNames
     newdata <- data.frame(newdata)
@@ -241,7 +212,7 @@ plot.dfunc.para <- function( x,
     
     # origDist <- Rdistance::distances(x) 
     # inStrip <- (x$w.lo <= d) & (d <= x$w.hi)
-    factor.names <- attr(terms(x$mf), "dataClasses")
+    factor.names <- attr(stats::terms(x$mf), "dataClasses")
     factor.names <- names(factor.names)[ factor.names %in% c("factor","character") ]
     for( nm in covNames ) {
       if( nm %in% factor.names ) {
@@ -251,7 +222,17 @@ plot.dfunc.para <- function( x,
       }
     }
   }
+
+  # Add discrete likelihood points ----
+  # add points just left and just right of breaks in discontinuous functions
+  x.seq <- switch(x$likelihood
+                  , "oneStep" = insertOneStepBreaks(obj = x
+                                                  , newData = newdata
+                                                  , xseq = x.seq)
+                  , x.seq
+  )
   
+    
   # Predict distance functions ----
   # after here, y is a matrix, columns are distance functions.
   y <- stats::predict(object = x
@@ -262,21 +243,18 @@ plot.dfunc.para <- function( x,
 
   # Compute scaling factors ----
   if( Rdistance::is.points(x) ){
-    y <- y * units::set_units(x.seq - x$w.lo, NULL)
-    y <- t( t(y) / (colSums(y, na.rm = TRUE) * units::set_units(x.seq[2] - x.seq[1], NULL))) # now y integrates to 1.0
+    y <- y * dropUnits(x.seq - x$w.lo)
+    y <- t( t(y) / (colSums(y, na.rm = TRUE) * dropUnits(x.seq[2] - x.seq[1]))) # now y integrates to 1.0
     # don't need to modify ybarhgts because cnts$density integrates to 1.0 already
     ybarhgts <- cnts$density
     y.finite <- y[ y < Inf ]
-     # scaler <- (units::set_units(scaler, NULL) ^ 2) / 2 # = integral of y = sum(y) * (x.seq[2] - x.seq[1])
-     # scaler <- units::drop_units(x.seq[2]-x.seq[1]) * colSums(y[-nrow(y),,drop = FALSE]+y[-1,,drop = FALSE]) / 2
-     # ybarhgts <- ybarhgts * scaler
     y.lims <- c(0, max( ybarhgts, y.finite, na.rm=TRUE ))
   } else {
     scaler <- Rdistance::effectiveDistance(object = x
                                            , newdata = newdata)
     # Note: scaler is correct even when g.x.scl != 1. Hence, no need to apply 
     # another scaler. i.e., this works when g.x.scl < 1
-    ybarhgts <-  cnts$density * units::set_units(mean(scaler), NULL) # now ybarhgts integrates to ESW 
+    ybarhgts <-  cnts$density * dropUnits(mean(scaler)) # now ybarhgts integrates to ESW 
     y.finite <- y[ y < Inf ]
     y.lims <- c(0, max( x$g.x.scl, ybarhgts, y.finite, na.rm=TRUE ))
   }
@@ -312,7 +290,7 @@ plot.dfunc.para <- function( x,
   if(plotBars){
     if(x$w.lo != zero){
       ybarhgts <- c(NA,ybarhgts)
-      xscl <- c(x$w.lo, rep(xscl,length(ybarhgts)-1))
+      xscl <- c(x$w.lo, xscl)
       # the following is because barplot draws the border
       # of the NA box when line density >= 0.  Makes no sense, but there it is.
       # This produces a line to 0 when w.lo > 0
@@ -327,9 +305,9 @@ plot.dfunc.para <- function( x,
       }
     }
     bar.mids <- graphics::barplot( ybarhgts, 
-                         width = units::set_units(xscl, NULL), 
+                         width = dropUnits(xscl), 
                          ylim = y.lims, 
-                         xlim = units::set_units(x.limits, NULL),
+                         xlim = dropUnits(x.limits),
                          space = 0, 
                          density = density,
                          angle = angle,
@@ -373,7 +351,7 @@ plot.dfunc.para <- function( x,
   if(circles){
     d <- Rdistance::distances(x)
     g <- apply(y, 2, FUN = function(y, x.seq, d){
-      approx(x.seq, y, xout = d)$y
+      stats::approx(x.seq, y, xout = d)$y
     }
     , x.seq = x.seq
     , d = d )

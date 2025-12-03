@@ -2,7 +2,7 @@
 % Please edit documentation in R/print.dfunc.r
 \name{print.dfunc}
 \alias{print.dfunc}
-\title{print.dfunc - Print method for distance function object}
+\title{Print method for distance function object}
 \usage{
 \method{print}{dfunc}(x, ...)
 }

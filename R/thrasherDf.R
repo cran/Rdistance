@@ -1,6 +1,6 @@
-#' @name thrasherDf
-#' 
 #' @title Sage Thrasher detection data frame in Rdistance >4.0.0 format
+#' 
+#' @name thrasherDf
 #' 
 #' @description  
 #' Point transect data collected in central Wyoming on 120 points
@@ -70,5 +70,4 @@
 #' \emph{The Condor: Ornithological Applications} 120:439–455. 
 #' \doi{10.1650/CONDOR-17-200.1}
 #' 
-#' @keywords datasets
 NULL

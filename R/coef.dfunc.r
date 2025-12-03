@@ -1,4 +1,4 @@
-#' @title coef.dfunc - Coefficients of an estimated detection function
+#' @title Coefficients of an estimated detection function
 #' 
 #' @description Extract distance model coefficients from 
 #' an estimated detection function object.
@@ -24,11 +24,10 @@
 #' \dontrun{
 #' data(sparrowDf)
 #' dfunc <- sparrowDf |> dfuncEstim(dist~bare + observer,
-#'                       w.hi=units::set_units(150, "m"))
+#'                       w.hi = 150 %m%.)
 #' coef(dfunc)
 #' }
 #'  
-#' @keywords model
 #' @export
 
 coef.dfunc <- function(object, ...){
