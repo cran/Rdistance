@@ -255,14 +255,7 @@ predict.dfunc <- function(object
     p <- length(BETA)
     q <- ncol(X)
     
-    # cat(crayon::red("In predict.dfunc:\n"))
-    # cat(crayon::red("BETA = \n"))
-    # print(BETA)
-    # cat(crayon::red("dim(X) = "))
-    # cat(paste(dim(X), collapse = ", "))
-    # cat("\n\n")
-    
-    paramsLink <- X %*% BETA[1:q] # could be extra parameters tacked on. e.g., knee for logistc or expansion terms
+    paramsLink <- X %*% BETA[1:q] # could be extra parameters tacked on. e.g., shape or expansion terms
   
     if(q < p){
       extraParams <- matrix(BETA[(q+1):p]
@@ -300,14 +293,12 @@ predict.dfunc <- function(object
          , {  # the default = parameters
              parms <- cbind(exp(paramsLink[,1]), # All link functions are exp...thus far
                             extraParams )
-             varyingParmName <- likeParamNames(object$likelihood)[1]
-             if( q < p ){
-               extraParmNames <- names(stats::coef(object))[(q+1):p]
-             } else {
-               extraParmNames <- NULL
+             
+             parmsNames <- likeParamNames(object$likelihood) # cannonical names
+             if( object$expansions >= 1 ){
+               parmsNames <- c(parmsNames, names(BETA)[p - (object$expansions:1) + 1])
              }
-             dimnames(parms) <- list(rownames(newdata)
-                                   , c(varyingParmName, extraParmNames))
+             dimnames(parms) <- list(rownames(newdata), parmsNames)
              parms
            }
     )

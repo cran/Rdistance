@@ -33,6 +33,7 @@
 #'   
 #' @param plot.bs A logical scalar indicating whether to plot individual
 #'   bootstrap iterations.
+#'   Ignored unless \code{parallel = FALSE}.
 #'   
 #' @param propUnitSurveyed A scalar or vector of real numbers between 0 and 1.  
 #' The proportion of the default sampling unit that 
@@ -46,9 +47,20 @@
 #' @param showProgress A logical indicating whether to show a text-based
 #'   progress bar during bootstrapping. Default is \code{TRUE}. 
 #'   It is handy to shut off the 
-#'   progress bar if running this within another function. Otherwise, 
-#'   it is handy to see progress of the bootstrap iterations.
+#'   progress bar if running this within another function. 
+#'   Ignored unless \code{parallel = FALSE}.
 #'   
+#' @param parallel A logical scalar, or a positive integer; ignored unless 
+#'   confidence intervals are requested (i.e., \code{!is.null(ci)}).
+#'   If TRUE, bootstrap iterations are 
+#'   run in parallel using the maximum number of CPU cores minus 1. 
+#'   The maximum number of CPU cores is reported by \code{parallel::detectCores()}.
+#'   If a positive integer (1 <= \code{parallel} <= maximum cores), bootstrap 
+#'   iterations are performed in parallel on that many cores. 
+#'   If FALSE, bootstrap iterations are performed in series, and progress 
+#'   will be shown if \code{showProgress == TRUE}. Parameters 
+#'   \code{showProgress} and \code{plot.bs} are ignored when operating
+#'   in parallel. 
 #'   
 #' @details The abundance estimate for line-transect surveys (if no covariates
 #'    are included in the detection function and both sides of the transect 
@@ -72,10 +84,9 @@
 #'    and \emph{ESR} is effective search radius 
 #'    computed from the estimated distance function (i.e., \code{ESR(dfunc)}).
 #'
-#'  Setting \code{plot.bs=FALSE} and \code{showProgress=FALSE} 
-#'     suppresses all intermediate output.  
-#'     
-#'  Estimation of site-specific density (e.g., on every transect) is accomplished by 
+#'  This routine, \code{abundEstim}, estimates abundance on the 
+#'  entire study area.  Site-specific density estimates 
+#'  are computed by 
 #'  \code{predict(x, type = "density")}, which returns a 
 #'  tibble containing density and abundance on the area surveyed by every
 #'  transect. 
@@ -87,11 +98,12 @@
 #'   To compute bootstrap CIs, Rdistance resamples, with replacement,
 #'   the rows of the \code{$data} component contained in Rdistance 
 #'   fitted models. Rdistance assumes each row of \code{$data} 
-#'   contains one information on on transect.
+#'   contains information on one transect.
 #'   The \code{$data} component also contains 
-#'   information on which observations go into the 
-#'   detection functions, which should be counted as detected targets, 
-#'   and which count toward transect length. 
+#'   information on which observations inform the 
+#'   detection function, which observations should be counted as 
+#'   detected targets, 
+#'   and which transects count toward transect length. 
 #'   After resampling rows of \code{$data}, Rdistance 
 #'   refits the distance function using non-missing distances, 
 #'   recomputes the detected number of targets using non-missing 
@@ -113,14 +125,15 @@
 #'   skips the iteration and effectively ignores the 
 #'   failed iterations. 
 #'   If the proportion of failed iterations is small 
-#'   (less than 20% by default), the resulting abundance confidence interval 
+#'   (less than 20\% by default), the resulting abundance confidence interval 
 #'   is probably valid and no warning is issued.  If the proportion of 
 #'   non-convergent iterations 
-#'   is not small (exceeds 20% by default), a warning is issued.  
+#'   is not small (exceeds 20\% by default), a warning is issued.  
 #'   The warning can be modified  
-#'   by re-setting the \code{Rdistance_maxBSFailPropForWarning} option. 
+#'   by re-setting option \code{"Rdistance_maxBSFailPropForWarning"} to
+#'   the acceptable proportion of failures.. 
 #'   Setting \code{options(Rdistance_masBSFailPropForWarning = 1.0)} will turn 
-#'   off the warning. 
+#'   suppress the warning. 
 #'   Setting \code{options(Rdistance_masBSFailPropForWarning = 0.0)} will 
 #'   warn if any iteration failed.  Results (density and effective 
 #'   sampling distance) 
@@ -131,11 +144,11 @@
 #' 
 #'   Transect lengths can be missing in the RdistDf object. 
 #'   Missing length transects are equivalent
-#'   to 0 [m] transects and do not count toward total surveyed units
-#'   nor to group sizes on these transects count toward total 
+#'   to 0 [m] transects and do not count toward total surveyed units,
+#'   nor do group sizes on these transects count toward total 
 #'   detected individuals.  
 #'   Use NA-length transects to include their associated distances 
-#'   when estimating the distance function, but not when estimating abundance. 
+#'   during distance function estimation, but not when estimating abundance. 
 #'   For example, this allows estimation of abundance on one 
 #'   study area using off-transect distances from another.  This allows 
 #'   sightability to be estimated using two or more similar targets (e.g., 
@@ -224,6 +237,7 @@ abundEstim <- function(object
                      , R = 500
                      , plot.bs = FALSE
                      , showProgress = TRUE
+                     , parallel = TRUE
                      ){
 
 
@@ -231,10 +245,21 @@ abundEstim <- function(object
   
   bootstrapping <- !is.null(ci) && !is.na(ci)
   
+  # Initial setup for parallel session ----
+  parallelRequest <- getNCores( parallel )
+  parallel <- parallelRequest$parallel  # T or F
+  
+  if( parallel ){
+    plot.bs <- FALSE
+    showProgress <- FALSE
+  }
+  
   # Initial setup for plotting ----
   if (bootstrapping && plot.bs) {
     graphics::par( xpd=TRUE )
     plotObj <- plot(object)
+  } else {
+    plotObj <- NULL
   }
   
   # ---- Set Area ----
@@ -250,12 +275,9 @@ abundEstim <- function(object
                     )
   ests$id <- "Original"
   
-  # ---- Prelims constants for bootstrapping ----
-  nDataRows <- nrow(object$data)
-  # bsData <- data.frame(id = "Original",
-  #                      rowIndex = 1:nDataRows)
+  # ---- Prelims: constants for bootstrapping ----
 
-  pb <- list(tick = function(){}) # NULL tick function for not bootstrapping
+  # pb <- list(tick = function(){}) # NULL tick function for not bootstrapping
 
   # ---- Add bootstrap indices if called for ----
   # This is essentially what rsample::bootstraps does, but rsample stores the 
@@ -263,62 +285,24 @@ abundEstim <- function(object
   # (R*nrow(x$data)+1) X 2 data frame must be constructable in memory.
   if ( bootstrapping ) {
     
-    nDigits <- ceiling(log10(R + 0.1))
-    id <- rep(1:R, each = nDataRows)
-    bsData <-  data.frame(
-                id = paste0("Bootstrap_",
-                            formatC(id
-                                    , format = "f"
-                                    , digits = 0
-                                    , width = nDigits
-                                    , flag = "0"))
-              , rowIndex = sample( 1:nDataRows
-                           , size = R*nDataRows
-                           , replace = TRUE
-                          ))
-
-    # set up progress bar if called for, only if bootstrapping
-    if(showProgress){
-      pb <- progress::progress_bar$new(
-          format = paste0(R, " Bootstraps: [:bar] Run Time: :elapsedfull")
-        , total = R+1
-        , show_after = 1
-        , clear = FALSE
-      )
-    }
-
-    # --- Apply estimation to each ID group ----
-    B <- bsData |> 
-      dplyr::group_by(id) |> 
-      dplyr::group_modify(.f = oneBsIter # oneBsIter is in Rdistance, not exported
-                        , data = object$data
-                        , formula = object$formula  
-                        , likelihood = object$likelihood 
-                        , w.lo = object$w.lo
-                        , w.hi = object$w.hi
-                        , expansions = object$expansions
-                        , series = object$series
-                        , x.scl = object$x.scl 
-                        , g.x.scl = object$g.x.scl
-                        , outputUnits = object$outputUnits
-                        , warn = FALSE
-                        , asymptoticSE = FALSE
-                        , area = area
-                        , propUnitSurveyed = propUnitSurveyed
-                        , pb = pb
-                        , plot.bs = plot.bs
-                        , plotCovValues = plotObj$predCovValues
-      )
-    
-    if(showProgress){
-      pb$terminate()
-    }
+    B <- bootstrap(
+                    object = object
+                  , area = area
+                  , propUnitSurveyed = propUnitSurveyed
+                  , R = R
+                  , plot.bs = plot.bs
+                  , plotCovValues = plotObj$predCovValues
+                  , showProgress = showProgress
+                  , parallel = parallel
+                  , cores = parallelRequest$cores
+                ) 
     
     # Replace varcovar with bootstrap varcovar
     bsCoefs <- B |> 
       dplyr::ungroup() |> 
       dplyr::select(dplyr::all_of(names(stats::coef(object))))
     object$varcovar <- stats::var(bsCoefs)
+    object$asymptoticSE <- FALSE
     
 
   } else {
@@ -362,14 +346,14 @@ abundEstim <- function(object
 
     # rearrange columns    
     ans$estimates <- ans$estimates |> 
-      dplyr::select(id
+      dplyr::select("id"
                   , dplyr::all_of(names(stats::coef(object)))  
                   , dplyr::starts_with("density")
                   , dplyr::starts_with("abundance")
                   , dplyr::starts_with("avgEffDistance")
                   , dplyr::everything())
     B <- B |> 
-      dplyr::select(id
+      dplyr::select("id"
                   , dplyr::all_of(names(stats::coef(object)))  
                   , dplyr::starts_with("density")
                   , dplyr::starts_with("abundance")
