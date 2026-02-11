@@ -1,9 +1,9 @@
-0598f6d6cb53fa77a1f49f103a08385a *DESCRIPTION
+48650baa797ead24ba3bb829cd5e2699 *DESCRIPTION
 92ae04d731b91e4dc3e55c35b47309a1 *NAMESPACE
-c0dcd8f3783a48ad55e57e1fdfdc6fd6 *NEWS.md
+e36d81c7668b6e08333e4ec4058a08a3 *NEWS.md
 a391d0883fa39fc46ae1a87ce6e9514d *R/AIC.dfunc.R
 a3118ad321fc01e1ab9de3a6c8ab8863 *R/EDR.R
-d915c98b1b37a58a30c1185d13cc4422 *R/ESW.r
+031172b74174c1cb5b3fceecabd834f0 *R/ESW.r
 17a1737aaed1e5d12e09b8de5b8d9325 *R/Gamma.like.R
 aaa240b5a8025f125369d76f66360e11 *R/Gamma.start.limits.R
 754ed476ba19667f99884c71cd73347f *R/GammaModes.R
@@ -74,7 +74,7 @@ eac53a9b646c59c72e5b2bfd7824da4e *R/negexp.start.limits.R
 6bd89941c701577dc2d9d40448692c49 *R/oneBsIter.R
 3b15d1313578cb211581f37a53600959 *R/oneStep.like.R
 e190f011e4066ebc1cad5d1f61e32ee5 *R/oneStep.start.limits.R
-29566bd8062859ba94db5cb9f4963eab *R/parseModel.R
+c9751b048e9d238cbdd7d0621f4528d2 *R/parseModel.R
 38a410df6ac7a376419127ba817037fd *R/perpDists.R
 7de98cc81233fd3904ec681704cbd845 *R/plot.dfunc.para.R
 8845e7b12fc62a953865f0445de2276d *R/plot.dfunc.r
@@ -199,7 +199,7 @@ ed391cfcc80287885c651679f777d429 *man/observationType.Rd
 cc54e0d5c6adf156ddece0bd5814b851 *man/oneBsIter.Rd
 a40e5f7965f816de7ab60d8da0f23450 *man/oneStep.like.Rd
 9408e24c4501aec45cc586b6af4cfff0 *man/oneStep.start.limits.Rd
-8d8ad300857c7b2d716c74d803eee3d6 *man/parseModel.Rd
+d354a2b04e78760f92056a5d7bdadbf4 *man/parseModel.Rd
 64680d671bad011da434a7e68234f753 *man/perpDists.Rd
 6d5d8043b84612ff9ae4190c4a6bc6cf *man/plot.dfunc.Rd
 418638f66afaf3e1bb6209731c1d0ed8 *man/plot.dfunc.para.Rd
