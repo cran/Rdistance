@@ -79,7 +79,7 @@ integrateNumeric <- function(object
                            , isPoints = NULL
                            , likelihood = NULL
                              ){
-  
+
   if( inherits(object, "dfunc") ){
     w.lo <- object$w.lo
     w.hi <- object$w.hi 
@@ -112,27 +112,39 @@ integrateNumeric <- function(object
   d <- seq(zero, w.hi - w.lo, length=nInts) 
   dx <- d[2] - d[1]  # or (w.hi - w.lo) / (nInts-1); could do diff(dx) if unequal intervals
 
+  
   # don't need covars since params are always computed
   XIntOnly <- matrix(1, nrow = length(d), ncol = 1) 
 
   f.like <- utils::getFromNamespace(paste0( likelihood, ".like"), "Rdistance")    
 
-  y <- f.like(
+  likeObj <- f.like(
       a = object
     , dist = d
     , covars = XIntOnly
     , w.hi = w.hi - w.lo # I don't think we need w.hi in f.like here
   )
-  y <- y$L.unscaled # (nInts x n) = (length(d) X nrow(parms))
+  
+  y <- likeObj$L.unscaled # (nInts x n) = (length(d) X nrow(object))
 
   if( expansions > 0 ){
-    # we know that likelihood is a differentiableLikelihoods (not oneStep)
-    W <- rep(w.hi - w.lo, nrow(object))
+    # a bit awkward here: must construct a 'ml' object
+    ml <- list(
+        likelihood = likelihood
+      , outputUnits = Units
+      , w.lo = w.lo
+      , w.hi = w.hi
+    )
+    W <- expandW(ml = ml
+               , params = likeObj$params
+               , k = ncol(y)
+               )
+
     exp.terms <- Rdistance::expansionTerms(a = object
-                                           , d = d
-                                           , series = series
-                                           , nexp = expansions
-                                           , w = W)
+                                         , d = d
+                                         , series = series
+                                         , nexp = expansions
+                                         , w = W)
     y <- y * exp.terms
     y[ !is.na(y) & (y <= 0) ] <- getOption("Rdistance_zero")
 
