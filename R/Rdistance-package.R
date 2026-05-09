@@ -3,97 +3,78 @@
 #' @title Rdistance - Distance Sampling Analyses for Abundance Estimation
 #' 
 #' @description 
-#' \code{Rdistance} contains functions and associated routines to analyze
+#' `Rdistance` contains functions and associated routines to analyze
 #' distance-sampling data collected on point or line transects. 
-#' Some of \code{Rdistance}'s features include:
-#' \itemize{
-#'    \item Accommodation of both point and line transect analyses 
-#'     in one routine (\code{\link{dfuncEstim}}).
-#'    \item Regression-like formula for inclusion of distance function
-#'    covariates (\code{\link{dfuncEstim}}).
-#'    \item Automatic bootstrap confidence intervals 
-#'    (\code{\link{abundEstim}}).
-#'    \item Availability of both study-area and site-level abundance
-#'    estimates (\code{help("predict.dfunc")}).
-#'    \item Classical, parametric distance functions
-#'    (\code{\link{halfnorm.like}}, \code{\link{hazrate.like}}, 
-#'    \code{\link{negexp.like}}), and
-#'    expansion functions (\code{\link{cosine.expansion}}, 
-#'    \code{\link{hermite.expansion}}, \code{\link{simple.expansion}}).
-#'    
-#'    
-#'    \item Automated distance function fits and selection 
-#'    \code{\link{autoDistSamp}}.
-#'    
-#'    \item \code{print}, \code{plot}, \code{predict}, \code{coef}, 
-#'    and \code{summary} methods for distance function objects and 
+#' Some of `Rdistance`'s features include:
+#' 
+#' *  Accommodation of both point and line transect analyses in one routine ([dfuncEstim()]).
+#' *  Regression-like formula for inclusion of distance function covariates ([dfuncEstim()]).
+#' *  Automatic bootstrap confidence intervals ([abundEstim()]).
+#' *  Parallel processing of bootstrap iterations (`parallel` argument of [abundEstim()]).
+#' *  Availability of both study-area and site-level abundance estimates (`help("predict.dfunc")`).
+#' *  Rigorous physical measurement requirements and automated conversion when necessary (\code{\link{%#%}}, [setUnits()]).
+#' *  Classic parametric distance functions ([halfnorm.like()], [hazrate.like()], [negexp.like()]), and
+#'    expansion functions ([cosine.expansion()], [hermite.expansion()], [simple.expansion()]).
+#' *  Mixture distance functions for non-standard shapes and thresholds ([oneStep.like()], [triangle.like()], and [huber.like()]).
+#' *  Automated distance function fitting and selection [autoDistSamp()].
+#' *  `print`, `plot`, `predict`, `coef`, and `summary` methods for distance function objects and 
 #'    abundance classes.
-#' }
 #' 
-#' 
-#' @section Background:
+#' # Background:
 #' Distance-sampling is a popular method for abundance estimation in
 #' ecology. Line transect surveys are conducted by traversing
 #' randomly placed transects in a study area with the objective of
 #' sighting animals and estimating density or abundance.  Data collected
-#' during line transect surveys consists of sighting records for
-#' \emph{targets}, usually either individuals or groups of individuals.  Among
-#' the collected data, off-transect distances are recorded or computed from
-#' other information (see \code{\link{perpDists}}).  Off-transect distances 
-#' are the perpendicular distances from the transect to the location of 
-#' the initial sighting cue.
-#' When groups are the target, the number of individuals in the group is
-#' recorded.
+#' during line transect surveys consists of *target* sightings, 
+#' either of individuals or groups, and off-transect distances to the 
+#' original location of the *target*. 
+#' When *targets* are sighted in groups, data include the number 
+#' of individuals in the group.
 #' 
 #' Point transect surveys are similar except that observers stop one 
-#' or more times along the transect to observe targets.  This is a 
-#' popular method for avian surveys where detections are often auditory 
-#' cues, but is also appropriate when automated detectors are placed along
-#' a route.  Point transect surveys collect distances from the observer to 
-#' the target and are sometimes called \emph{radial} distances.   
+#' or more times along the transect to observe *targets*.  Point transects are
+#' popular avian survey methods where detections are often auditory 
+#' cues. Point transects are also for studies using automated auditory detectors
+#' or trail cameras.  Point transect data consists of radial distances from 
+#' the observer to the *target*.   
 #' 
-#' 
-#' A fundamental characteristic of both line and point-based 
-#' distance sampling analyses is that
-#' probability of detecting a target declines as
+#' The defining feature of distance sampling is the tendency for 
+#' probability of detection to decline as
 #' off-transect or radial distances increase. Targets far from 
-#' the observer are usually 
-#' harder to detect than closer targets.  In most
-#' classical line transect studies, targets on the transect (off-transect
-#' distance = 0) are assume to be sighted with 100\% probability.  This
-#' assumption allows estimation of the proportion of targets missed during the
-#' survey, and thus it is possible to adjust the actual number of 
-#' sighted targets for the proportion of targets missed. 
-#' Some studies utilize two observers searching the same areas to
-#' estimate the proportion of individuals missed and thereby eliminating the
+#' the observer are generally  
+#' harder to detect than those closer.  In most
+#' line transect studies, *targets* on the transect (off-transect
+#' distance = 0) are assumed to be sighted with 100% probability.  This
+#' assumption allows researchers to estimate the proportion of missed 
+#' targets and in turn adjust the number of 
+#' sighted *targets* for missed detections. 
+#' Some studies utilize two observers searching the same areas and are able to
+#' estimate the proportion of individuals missed on the transect line and 
+#' thereby eliminate the
 #' assumption that all individuals on the line have been observed.
 #' 
-#' @section Relationship to other software: 
-#' A detailed comparison of
-#' \code{Rdistance} to other options for distance sampling analysis (e.g.,
-#' Program DISTANCE, R package \code{Distance}, and R package \code{unmarked})
-#' is forthcoming.  While some of the functionality in \code{Rdistance} 
-#' is not unique, our aim is to provide an easy-to-use, rigorous,
-#' and flexible analysis option for distance-sampling data.  
-#' We understand that beginning
-#' users often need software that is both easy to use and easy to understand,
-#' and that advanced users often require greater flexibility and customization.
-#' Our aim is to meet the demands of both user groups.  \code{Rdistance} is
-#' under active development, so please contact us with issues, feature
-#' requests, etc. through the package's GitHub website
-#' (\url{https://github.com/tmcd82070/Rdistance}).
+#' # Purpose: 
+#' The author's aims are 
+#' to provide an easy-to-use, rigorous, and flexible analysis option in R for 
+#' distance-sampling data.  The authors believe that beginning
+#' users need easy-to-use and easy-to-understand software,
+#' while advanced users require greater flexibility and customization, and 
+#' their aim is to meet the demands of both groups. 
 #' 
-#' @section Data sets:
-#'  \code{Rdistance} contains four example data sets: two collected using 
-#' line-transect methods (i.e., \code{\link{sparrowDetectionData}} and
-#' \code{\link{sparrowSiteData}}) and two collected using point-transect
-#' methods (i.e.,
-#' \code{\link{thrasherDetectionData}} and \code{\link{thrasherSiteData}}).
+#' # Data sets:
+#' `Rdistance` contains the following example data sets: 
+#' 
+#' *  Line-transect sampling of Brewers sparrows in central Wyoming 
+#' ([sparrowDf()]).
+#' *  Point-transect sampling of Sage Thrashers in central Wyoming 
+#' ([thrasherDf()]).
 #' 
 #' 
-#' @references Buckland, S.T., Anderson, D.R., Burnham, K.P. and Laake, J.L.
-#'   1993. \emph{Distance Sampling: Estimating Abundance of Biological
-#'   Populations}. Chapman and Hall, London.
+#' # References 
+#' 
+#' Buckland, S.T., Anderson, D.R., Burnham, K.P. and Laake, J.L.
+#'   1993. *Distance Sampling: Estimating Abundance of Biological
+#'   Populations*. Chapman and Hall, London.
 #' 
 #' @aliases Rdistance-package distance Rdistance point-transect line-transect
 #' 

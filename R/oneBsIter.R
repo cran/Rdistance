@@ -4,13 +4,13 @@
 #' Performs density and abundance estimation for one bootstrap iteration. 
 #' 
 #' 
-#' @param pb A progress bar created with \code{progress::progress_bar$new()}.
+#' @param pb A progress bar created with `progress::progress_bar$new()`.
 #' 
 #' @param plot.bs Logical. Whether to plot bootstrap estimate of detection function.
-#' A plot must already exist because this uses \code{lines}.
+#' A plot must already exist because this uses `lines`.
 #' 
 #' @param plotCovValues Data frame containing values of covariates to plot.
-#' Ignored if \code{plot.bs} is FALSE.
+#' Ignored if `plot.bs` is FALSE.
 #' 
 #' @inheritParams dE.single
 #' 
@@ -20,7 +20,7 @@
 #' and other relevant statistics for 
 #' one iteration of the bootstrap. 
 #' 
-#' @seealso \code{\link{bootstrap}}; \code{\link{abundEstim}}
+#' @seealso [bootstrap()]; [abundEstim()]
 #' 
 #' @export
 oneBsIter <- function(  object
@@ -32,18 +32,23 @@ oneBsIter <- function(  object
                       , warn = FALSE
                       , asymptoticSE = FALSE
 ){
-  
+
   # Stratified bootstrap: same rows from each strata, strata = is.na(effort)
   effCol <- attr(object$data, "effortColumn")
   missingTransect <- is.na(object$data[[effCol]]) 
   n <- length(missingTransect)
   noTranInd    <- sample( (1:n)[missingTransect], replace = T )
   withTranInd  <- sample( (1:n)[!missingTransect], replace = T )
-  bsdf <- rbind( object$data[noTranInd, ]
-               , object$data[withTranInd, ] ) # don't use dplyr::bind_rows
+  bsdf <- rbind( object$data[noTranInd, ,drop = FALSE]
+               , object$data[withTranInd, ,drop = FALSE] )
   
-  # bsdf must be is.RdistDf(bsdf) = TRUE, it is
-  
+  # I wish rbind or dplyr::bind_rows preserved attributes
+  # is.RdistDf(bsdf) must be TRUE; make it so
+  attr(bsdf, "detectionColumn") <- attr(object$data, "detectionColumn")
+  attr(bsdf, "effortColumn") <- attr(object$data, "effortColumn")
+  attr(bsdf, "obsType") <- attr(object$data, "obsType")
+  attr(bsdf, "transType" ) <- attr(object$data, "transType")
+
   # Fit dfunc to bs data
   dfunc.bs <- dfuncEstim(data = bsdf,
                          formula = object$formula,  

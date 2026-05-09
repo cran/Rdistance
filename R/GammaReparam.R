@@ -1,4 +1,4 @@
-#' @title Reparameterise Gamma parameters for use in dgamma
+#' @title Reparameterize Gamma parameters for use in dgamma
 #' 
 #' @description Transform Rdistance's version of the Gamma distribution
 #' parameters, which is that of Becker and Quan, into the version for 
@@ -13,7 +13,7 @@
 #' re-parameterized versions of the input parameters suitable for 
 #' us in R::dgamma().
 #' 
-#' @seealso 'Details' section of \code{\link{Gamma.like}}  
+#' @seealso 'Details' section of [Gamma.like()]  
 #' for Rdistance's Gamma distribution
 #' 
 #' @examples

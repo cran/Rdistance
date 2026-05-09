@@ -1,9 +1,9 @@
 #' @title Check RdistDf data frames
 #' 
 #' @description
-#' Checks the validity of \code{Rdistance} nested data frames. 
-#' \code{Rdistance} data frames 
-#' are a particular implementation of rowwise \code{tibbles} 
+#' Checks the validity of `Rdistance` nested data frames. 
+#' `Rdistance` data frames 
+#' are a particular implementation of rowwise `tibbles` 
 #' that contain detections in a list column, and extra attributes 
 #' specifying types. 
 #' 
@@ -14,32 +14,34 @@
 #' 
 #' @details The following checks are performed (in this order):
 #' \itemize{
-#'   \item \code{attr(df, "detectionColumn")} exists and points to a valid 
+#'   \item `attr(df, "detectionColumn")` exists and points to a valid 
 #'   list-based column in the data frame. 
-#'   \item \code{attr(df, "obsType")} exists and is one of the valid values.
-#'   \item \code{attr(df, "transType")} exists and is one of the valid values.
+#'   \item `attr(df, "obsType")` exists and is one of the valid values.
+#'   \item `attr(df, "transType")` exists and is one of the valid values.
+#'   \item `attr(df, "effortColumn")` exists and points to a column in the 
+#'   data frame with 1 dimensional units attached.
 #'   \item The data frame is either a 'rowwise_df' or 'grouped_df' 
-#'   \code{tibble}.
+#'   `tibble`.
 #'   \item The data frame has only one row per group. One row per group 
 #'   is implied by 'rowwise_df', but not a 'grouped_df', and both are allowed
-#'   in \code{Rdistance}. One row per group ensures rows are uniquely identified 
+#'   in `Rdistance`. One row per group ensures rows are uniquely identified 
 #'   and hence represents one transect. 
 #'   \item No column names in the list-column are duplicated in the non-list 
-#'   columns of the data frame. This check ensures that \code{tidyr::unnest}
+#'   columns of the data frame. This check ensures that `tidyr::unnest`
 #'   executes. 
 #' }
 #' Other data checks, e.g., for measurement units, are performed 
-#' later in \code{\link{dfuncEstim}}, after the model is specified. 
+#' later in [dfuncEstim()], after the model is specified. 
 #' 
 #' @return TRUE or FALSE invisibly. TRUE means all checks passed. FALSE implies 
-#' at least one check failed. Use \code{verbose} = TRUE to see which. 
+#' at least one check failed. Use `verbose` = TRUE to see which. 
 #' 
 #' @examples
 #' 
 #' data(sparrowDf)
 #' is.RdistDf(sparrowDf)
 #' 
-#' # Data frame okay, but no attributes
+#' # Data frame is okay, but no attributes
 #' data(sparrowDetectionData)
 #' data(sparrowSiteData)
 #' sparrowDf <- sparrowDetectionData |> 
@@ -48,33 +50,19 @@
 #'   dplyr::right_join(sparrowSiteData, by = "siteID")
 #' is.RdistDf(sparrowDf, verbose = TRUE)
 #' 
+#' # Manually add required attributes
+#' attr(sparrowDf, "detectionColumn") <- "distances"
+#' attr(sparrowDf, "effortColumn") <- "length"
+#' attr(sparrowDf, "obsType") <- "single"
+#' attr(sparrowDf, "transType" ) <- "line"
+#' is.RdistDf(sparrowDf, verbose = TRUE)
 #' 
 #' @export
 #' 
 is.RdistDf <- function(df, verbose = FALSE){
   
   dfName <- deparse(substitute(df))
-  
-  # Check for 'RdistDf' class 
-  # if(!inherits(df, "RdistDf")){
-  #   if(verbose){
-  #     cat(paste(
-  #       crayon::red(dfName)
-  #       , "does not inherit from class 'RdistDf'."
-  #       , "Assign class using", 
-  #       crayon::red(paste0("class("
-  #                          , dfName
-  #                          , ") <- c('RdistDf', class("
-  #                          , dfName
-  #                          , ")),"
-  #                          ))
-  #       , "or execute function Rdistance::RdistDf()."
-  #       , "\n"
-  #       ))
-  #   }
-  #   return(FALSE)
-  # }
-  
+
   # Check for list column name attribute ----
   distColName <- attr(df, "detectionColumn")[1]  # could be NULL
   hasListColName <- !is.null(distColName)

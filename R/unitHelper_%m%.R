@@ -4,19 +4,19 @@
 #' See Details.
 #' 
 #' @details
-#' The fixed unit assignment operators are designed to behave somewhat like 
+#' The fixed unit assignment operators are designed to behave like 
 #' unary operators (i.e., 1 argument);
 #' but, R does not allow 
 #' user defined unary operators. 
-#' Technically, the fixed unit assignment operators are instances of
+#' Technically, these fixed unit assignment operators are instances of
 #' R's user-defined infix 
 #' operator, and as such they require two arguments. 
 #' Their syntax must be 
-#' \code{x \%<units>\% <something>}; but, the second argument is ignored
+#' `x %<units>% <something>`; but, the second argument is ignored
 #' and '.' is suggested. See Examples.  
 #' 
 #' @returns 
-#' For all the fixed unit assignment operators (i.e., \%<units>\%), 
+#' For all the fixed unit assignment operators (i.e., %units%), 
 #' argument x with the respective units assigned. 
 #' 
 #' 
