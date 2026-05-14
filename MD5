@@ -1,6 +1,6 @@
-0feddb9619f13024c8c0df61afbcc1a9 *DESCRIPTION
+399fbf8b44658aff1fe5b48179aecf0d *DESCRIPTION
 c84fa3e1f8fd99317be1195d59f5aba7 *NAMESPACE
-29ebea048e2eb5aadc048e12ec8cfdf1 *NEWS.md
+b5e84b54c92a407621b22ffebfc460f3 *NEWS.md
 16a6bbe0f3d9ae0b7192c16b7e01d63f *R/AIC.dfunc.R
 b63076c0695018a02bcda6d42b3ed6d4 *R/EDR.R
 e6bf2a28fe3a22eee085dfbed03298e2 *R/ESW.r
@@ -59,7 +59,7 @@ e802520678fdffe2ba72c650b7555b35 *R/integrateHalfnormLines.R
 17ffd04029fb9efc9f5763a56dcbce4d *R/integrateNegexpPoints.R
 a2809d4963a82356b8d7da9737b9c3e0 *R/integrateNumeric.R
 f88340b204f67e4cf6212a52d8ae70df *R/integrateOneStepLines.R
-187b77e75b076333a0f1ca04b8cca3d4 *R/integrateOneStepNumeric.R
+6a0205448edb339339721377de88980c *R/integrateOneStepNumeric.R
 c60650780f494f356610c8418f460836 *R/integrateOneStepPoints.R
 c16f9ed5d71e7bdd4b833b2dcb397b9c *R/integrateTriangleLines.R
 f0ea0953911825bb4008c6b41de16de1 *R/intercept.only.R
