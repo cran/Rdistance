@@ -1,3 +1,82 @@
+Changes in version 4.5.0 (2026-09-17)
+==============
+
+-   **Functionality change** - ***OSCARS Optimization***: Fitting non-smooth 
+distance functions (`oneStep`, `triangle`, and `huber`) is now
+accomplished by `OSCARS::oscars`. OSCARS is a true global maximizer and hence 
+cannot absolutely guarantee that the global maximum has been found.  However, 
+OSCARS now starts at parameters reasonably close to the likelihood's maximum and 
+performs a maximum of 10,000 iterations (the default, 
+see `options("Rdistance_oscarEvals")`).  While slower than other methods, this 
+method usually finds a higher maximum of the likelihood than other methods. Due
+to the *significant* slow down using OSCARS, estimated run times are reported
+on the command line. 
+-   **Functionality change** - ***Transect Survey Design Routines***: Added 
+a family of functions for designing 
+random line-transect surveys inside study-area polygons. Routine `findSpacing()`
+computes transect spacing that yields a target survey length. Routine 
+`makeLines()` places transects with a random start. `calcLineLength()` 
+converts a target number of detected groups into a target transect length. 
+The main function called 
+by users, `drawTransects()`, is a wrapper that calls `findSpacing()` 
+followed by `makeLines()`.  Both parallel ("rectangular", or "back and forth") 
+and "zigzag" transects are implemented. Transects are applied over one or several polygons, 
+with an option to generate random replicates (parameter `R`). Transects can 
+be returned as one continuous route (`combine` = `TRUE`) or as individual 
+legs (`combine` = `FALSE`), and `targetLength` can refer to the total 
+(`target` = `"total"`) or on-effort length (`target` = `"onEffort"`). 
+Computation of the spacing is an optimization problem performed 
+by `OSCARS::oscars`. Some notes: 
+    -   **"zigzag" routes**: Constructed by placing a series of 
+    line segments perpendicular to a baseline 
+    that are regularly spaced with a random start. Transect "legs" run 
+    from polygon edge to polygon edge and cross the baseline at the points 
+    separated by the specified spacing. Locations where "legs" meet on the 
+    polygon's boundary are the transect's "pivots".
+    -   **Spacing**: Spacing is the distance between adjacent
+    crossings of the baseline under both the rectangular and zigzag layouts. 
+    -   **Combine**: Parameter `combine` controls clipping and
+    shape of the returned object. `combine = TRUE` returns the full route, 
+    unclipped, including on-transect and off-transect transit segments. 
+    `combine = FALSE` returns one row per "leg", clipped to the polygon. 
+    The returned lengths sum to on-effort length. Legs that are broken by 
+    a concavity is divided into pieces and is returned as a `MULTILINESTRING` 
+    geometry. 
+    -   **Zigzag baselines**: Unless the user supplies a baseline, zigzag 
+    transect baselines are straight. When no `baseline` is supplied, the 
+    polygon's general centerline is approximated by the midpoints of polygon 
+    cords. This initial baseline is then straightened by regressing vertical 
+    coordinates onto horizontal coordinates and translating the estimated 
+    line to pass through the polygon's centroid.  
+    -   **Convex Partitioning**: Routine `convexPartition` splits a 
+    strongly concave polygon into a number of (hopefully) more-convex pieces 
+    using Approximate Convex Decomposition (Lien & Amato 2006). Splitting 
+    improves the coverage of zigzag transects on bent, arc-, or L-shaped polygons.
+    Breaking polygons into smaller more-convex pieces is not necessary for 
+    rectangular transects. Parameter `nPieces` is either an integer, in which 
+    case exactly that many pieces are returned, or `"optimum"` (the default), 
+    in which case the count is chosen automatically. `method = "fast"` 
+    (the default) cuts greedily at the most concave vertex.  `method = "optimum"`
+    searches the cut vertices with `OSCARS::oscars` to maximize the minimum 
+    solidity of the pieces. 
+-   **New data sets**: 
+    - `exampleSurveyPoly`: two real-world concave survey strata in Alaska (in 
+    Cook Inlet) used to demonstrate the survey-design functions.
+    - `pronghornDf`: Data from an aerial line-transect survey for pronghorn 
+    (*Antilocapra americana*) collected by the Wyoming Game and Fish 
+    Department in southeast Wyoming, 2012-2019. 
+    - `pronghornAreas`: The study-area (herd-unit) polygons associated with 
+    the pronghorn line-transect data. 
+-   **New dependencies**: Added `sf`, `grDevices`, and `OSCARS` to 
+Imports, required by the new survey-design functions.
+-   **Functionality change**: `abundEstim()` now accepts a previously fitted 
+abundance object in addition to a distance function. This lets users add 
+bootstrap iterations to an existing fit, for example by fitting with 
+`ci = NULL` first and running (or extending) the bootstrap later. 
+-   **Documentation Updates**: Many documentation updates to (hopefully) clarify
+the routines and methods. 
+
+
 Changes in version 4.4.3 (2026-05-13)
 ==============
 
